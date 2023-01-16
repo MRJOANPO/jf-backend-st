@@ -303,7 +303,6 @@ def buchhaltung_view():
                 connection.commit()
                 st.write(f"{buchhaltung_cursor.rowcount} Datensatz aktualisiert für {current_data[FIRST_NAME_COL]} {current_data[LAST_NAME_COL]} mit einem Betrag von {babel.numbers.format_currency(betrag, 'EUR', 'de_DE')}")
 
-
 def finanzen_view():
     st.markdown("### Übersicht Finanzen")
 
@@ -324,6 +323,7 @@ def finanzen_view():
     })
 
     finanz_data["Ausstehend"] = finanz_data["Kosten"] - finanz_data["Überwiesen"]
+    finanz_data_raw = finanz_data.copy()
 
     finanz_data["Ausstehend"] = finanz_data["Ausstehend"].apply(render_money)
     finanz_data["Kosten"] = finanz_data["Kosten"].apply(render_money)
@@ -334,11 +334,11 @@ def finanzen_view():
 
     st.markdown("### Zusammenfassung")
     finanz_data_sum = pd.DataFrame({
-        "Summe Kosten": finanz_data["Kosten"].sum(),
-        "Summe Überwiesen": finanz_data["Überwiesen"].sum(),
-        "Summe Ausstehend": finanz_data["Ausstehend"].sum(),
-        "Anzahl MA": finanz_data["MA"].sum(),
-        "Anzahl Küche": finanz_data["Küche"].sum(),
+        "Summe Kosten": babel.numbers.format_currency(finanz_data_raw["Kosten"].sum(), "EUR", "de_DE"),
+        "Summe Überwiesen": babel.numbers.format_currency(finanz_data_raw["Überwiesen"].sum(), "EUR", "de_DE"),
+        "Summe Ausstehend": babel.numbers.format_currency(finanz_data_raw["Ausstehend"].sum(), "EUR", "de_DE"),
+        "Anzahl MA": finanz_data_raw["MA"].sum(),
+        "Anzahl Küche": finanz_data_raw["Küche"].sum(),
     }, index=[0])
 
     st.write(finanz_data_sum)
