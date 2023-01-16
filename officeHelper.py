@@ -32,7 +32,7 @@ def send_to_authorize():
     params_authorize = {
         "client_id": OFFICE_APP_ID,
         "response_type": "code",
-        "redirect_uri": "http://localhost:8501/",
+        "redirect_uri": REDIRECT_URL,
         "scope": " ".join(SCOPES),
         "response_mode": "query"
     }
@@ -63,7 +63,7 @@ def set_access_token():
         "client_id": OFFICE_APP_ID,
         "scope": " ".join(SCOPES),
         "code": st.session_state["auth_code"],
-        "redirect_uri": "http://localhost:8501/",
+        "redirect_uri": REDIRECT_URL,
         "grant_type": "authorization_code",
         "client_secret": OFFICE_TOKEN_VALUE
     }
