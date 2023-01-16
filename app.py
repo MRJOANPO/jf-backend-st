@@ -92,7 +92,7 @@ def calc_kosten(current_data):
     total_cost = freizeitkosten + buskosten
 
     if current_data[EXTRA_DISCOUNT_COL] != 0:
-        discount += current_data[EXTRA_DISCOUNT_COL]
+        discount += -current_data[EXTRA_DISCOUNT_COL]
         discount_code += "Unterstützung, "
 
     if current_data[SIBLING_COL]:
@@ -278,30 +278,34 @@ def rechnung_view(primary=0):
 
 def buchhaltung_view():
     st.markdown("### Buchhaltung Upload")
-    uploaded_file = st.file_uploader("Hier Liste der aktuellen Buchungen hochladen", ".csv", False)
 
-    if uploaded_file is not None:
-        uploaded_data = pd.read_csv(uploaded_file, sep=";", decimal=",", encoding="cp1252", header=3)
-        relevant_data = uploaded_data[uploaded_data["Verwendungszweck"].str.contains("JF2023-", case=False, na=False)]
+    with st.form("buchhaltung-form", clear_on_submit=True):
+        uploaded_file = st.file_uploader("Hier Liste der aktuellen Buchungen hochladen", ".csv", False)
+        submitted = st.form_submit_button("Jetzt Überweisungen analysieren und Teilnehmerbeträge schreiben")
 
-        if len(relevant_data) == 0:
-            st.markdown("In dieser Datei gibt es keine Daten, welche eingetragen werden sollten.")
-        for i in range(len(relevant_data)):
-            verwendungszweck = relevant_data.iloc[i,8]
-            betrag = relevant_data.iloc[i,11]
-            current_id = int(re.findall(r"JF2023-(\d\d\d)", verwendungszweck)[0])
-            current_data = data_total[data_total[KEY_COL]==current_id]
+        if submitted and uploaded_file is not None:
+            uploaded_data = pd.read_csv(uploaded_file, sep=";", decimal=",", encoding="cp1252", header=3)
+            relevant_data = uploaded_data[uploaded_data["Verwendungszweck"].str.contains("JF2023-", case=False, na=False)]
 
-            if len(current_data) == 0:
-                st.markdown(f"Es konnte keine Person zu diesem Verwendungszweck zugeordnet werden: *{verwendungszweck}*")
-            else:
-                buchhaltung_cursor = connection.cursor()
-                current_balance = current_data[BALANCE_COL]
-                new_balance = current_balance + betrag
-                buchhaltung_query = f"UPDATE Anmeldung SET {BALANCE_COL}={new_balance} WHERE id={current_id}"
-                buchhaltung_cursor.execute(buchhaltung_query)
-                connection.commit()
-                st.write(f"{buchhaltung_cursor.rowcount} Datensatz aktualisiert für {current_data[FIRST_NAME_COL]} {current_data[LAST_NAME_COL]} mit einem Betrag von {babel.numbers.format_currency(betrag, 'EUR', 'de_DE')}")
+            if len(relevant_data) == 0:
+                st.markdown("In dieser Datei gibt es keine Daten, welche eingetragen werden sollten.")
+            for i in range(len(relevant_data)):
+                verwendungszweck = relevant_data.iloc[i,8]
+                betrag = relevant_data.iloc[i,11]
+                current_id = int(re.findall(r"JF2023-(\d\d\d)", verwendungszweck)[0])
+                current_data = data_total[data_total[KEY_COL]==current_id]
+
+                if len(current_data) == 0:
+                    st.markdown(f"Es konnte keine Person zu diesem Verwendungszweck zugeordnet werden: *{verwendungszweck}*")
+                else:
+                    buchhaltung_cursor = connection.cursor()
+                    current_balance = current_data[BALANCE_COL]
+                    new_balance = current_balance.values[0] + betrag
+                    buchhaltung_query = f"UPDATE Anmeldung SET {BALANCE_COL}={new_balance} WHERE id={current_id}"
+
+                    buchhaltung_cursor.execute(buchhaltung_query)
+                    connection.commit()
+                    st.write(f"{buchhaltung_cursor.rowcount} Datensatz aktualisiert für {current_data[FIRST_NAME_COL].values[0]} {current_data[LAST_NAME_COL].values[0]} mit einem Betrag von {babel.numbers.format_currency(betrag, 'EUR', locale='de_DE')}")
 
 def finanzen_view():
     st.markdown("### Übersicht Finanzen")
@@ -328,7 +332,7 @@ def finanzen_view():
     finanz_data["Ausstehend"] = finanz_data["Ausstehend"].apply(render_money)
     finanz_data["Kosten"] = finanz_data["Kosten"].apply(render_money)
     finanz_data["Überwiesen"] = finanz_data["Überwiesen"].apply(render_money)
-    finanz_data = finanz_data[finanz_data["Rechnung"] == 1]
+    finanz_data = finanz_data[finanz_data["Rechnung"] == 0]
     finanz_data.drop(columns=["Rechnung"], inplace=True)
     st.dataframe(finanz_data)
 
