@@ -334,9 +334,9 @@ def finanzen_view():
 
     st.markdown("### Zusammenfassung")
     finanz_data_sum = pd.DataFrame({
-        "Summe Kosten": babel.numbers.format_currency(finanz_data_raw["Kosten"].sum().values[0], "EUR", "de_DE"),
-        "Summe Überwiesen": babel.numbers.format_currency(finanz_data_raw["Überwiesen"].sum().values[0], "EUR", "de_DE"),
-        "Summe Ausstehend": babel.numbers.format_currency(finanz_data_raw["Ausstehend"].sum().values[0], "EUR", "de_DE"),
+        "Summe Kosten": babel.numbers.format_currency(finanz_data_raw["Kosten"].sum(), "EUR", locale="de_DE"),
+        "Summe Überwiesen": babel.numbers.format_currency(finanz_data_raw["Überwiesen"].sum(), "EUR", locale="de_DE"),
+        "Summe Ausstehend": babel.numbers.format_currency(finanz_data_raw["Ausstehend"].sum(), "EUR", locale="de_DE"),
         "Anzahl MA": finanz_data_raw["MA"].sum(),
         "Anzahl Küche": finanz_data_raw["Küche"].sum(),
     }, index=[0])
