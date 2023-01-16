@@ -1,8 +1,8 @@
+datetime
+requests
 mysql-connector-python
 streamlit
 pandas
 numpy
-weasyprint
-datetime
-requests
-ms-graph-python-client
+babel
+fpdf

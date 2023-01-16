@@ -1,3 +1,4 @@
 .streamlit*
-env_streamlit_jf*
+env_jf_streamlit.nosync*
 .vscode*
+__pycache__*
