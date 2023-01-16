@@ -39,7 +39,8 @@ def send_to_authorize():
     }
 
     authorization_request_url = requests.get(url=login_url, params=params_authorize, timeout=100).url
-    webbrowser.open(authorization_request_url)
+    #webbrowser.open(authorization_request_url)
+    st.markdown(f"[Erneut Autorisieren]({authorization_request_url})", unsafe_allow_html=True)
 
 def set_authorization_key():
     query_params = st.experimental_get_query_params()
@@ -138,7 +139,7 @@ def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
     if not response:
         st.write(response.text)
         st.write("E-Mail konnte nicht versandt werden. Versuche dich neu zu autorisieren. Oder kontaktiere einen Admin.")
-        st.button("Erneut Autorisieren", on_click=send_to_authorize)
+        send_to_authorize()
         return False
 
     return True
@@ -146,7 +147,7 @@ def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
 
 def reauthorize_button():
     st.write("Du bist derzeit nicht autorisiert. Versuche dich erneut zu autorisieren.")
-    st.button("Erneut Autorisieren", on_click=send_to_authorize)
+    send_to_authorize()
 
 def main_loop():
     set_authorization_key()
