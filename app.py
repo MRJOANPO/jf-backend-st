@@ -298,7 +298,7 @@ def buchhaltung_view():
                 buchhaltung_cursor = connection.cursor()
                 current_balance = current_data[BALANCE_COL]
                 new_balance = current_balance + betrag
-                buchhaltung_query = f"UPDATE {BALANCE_COL}={new_balance} WHERE id={current_id}"
+                buchhaltung_query = f"UPDATE Anmeldung SET {BALANCE_COL}={new_balance} WHERE id={current_id}"
                 buchhaltung_cursor.execute(buchhaltung_query)
                 connection.commit()
                 st.write(f"{buchhaltung_cursor.rowcount} Datensatz aktualisiert für {current_data[FIRST_NAME_COL]} {current_data[LAST_NAME_COL]} mit einem Betrag von {babel.numbers.format_currency(betrag, 'EUR', 'de_DE')}")
