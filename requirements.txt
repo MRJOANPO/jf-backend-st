@@ -6,3 +6,5 @@ pandas
 numpy
 babel
 fpdf
+base64
+webbrowser

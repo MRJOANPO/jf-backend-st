@@ -1,7 +1,7 @@
+import base64
 import requests
 import streamlit as st
 import webbrowser
-import base64
 
 OFFICE_TOKEN_VALUE = st.secrets["OFFICE"]["CLIENT_SECRET"]
 OFFICE_APP_ID = st.secrets["OFFICE"]["CLIENT_APP_ID"]
