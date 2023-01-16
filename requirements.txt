@@ -1,4 +1,3 @@
-datetime
 requests
 mysql-connector-python
 streamlit
@@ -6,5 +5,4 @@ pandas
 numpy
 babel
 fpdf
-base64
 webbrowser
