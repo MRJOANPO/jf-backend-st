@@ -13,7 +13,7 @@ EMAIL_URL = START_POINT + NODE_EMAIL
 REDIRECT_URL = st.secrets["OFFICE"]["REDIRECT_URL"]
 # REDIRECT_URL = "http://localhost:8501/" # uncomment for local development
 AUTO_SIGN_IN = False
-
+AGB_FILE = "Zusatzbedingungen und Informationen RockSolid Jugendfreizeit.pdf"
 
 def draft_attachment(file_name, file_bytes):
     media_content = base64.b64encode(file_bytes)
@@ -24,6 +24,10 @@ def draft_attachment(file_name, file_bytes):
         'name': file_name
     }
     return data_body
+
+def draft_agb_attachment():
+    with open(AGB_FILE, "rb") as agb_bytes:
+        return draft_attachment(AGB_FILE, agb_bytes)
 
 def send_to_authorize():
     login_url = f"{AUTHORITY_URL}oauth2/v2.0/authorize"
@@ -78,7 +82,7 @@ def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
     if is_parent:
         html_content = f"""
         <p>Hallo {name}, </p>
-        <p>Wohooo! Wir freuen uns, dass du dein Kind für Jugendfreizeit 2023 angemeldet hast.
+        <p>Wohooo! Wir freuen uns, dass du dein Kind für die Jugendfreizeit 2023 angemeldet hast.
         Anbei findest du die Rechnung. Sollte irgendwas unklar sein, schreib uns einfach eine
         E-Mail unter jugendfreizeit@rocksolidsiegen.de oder antworte auf diese E-Mail. </p>
         <p>Wir sind super gespannt und freuen uns!</p>
@@ -90,7 +94,7 @@ def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
     else:
         html_content = f"""
         <p>Hallo {name}, </p>
-        <p>Wohooo! Wir freuen uns, dass du dabei sein möchtest bei der Jugendfreizeit 2023.
+        <p>Wohooo! Wir freuen uns, dass du bei der Jugendfreizeit 2023 dabei bist.
         Anbei findest du die Rechnung. Sollte irgendwas unklar sein, schreib uns einfach eine
         E-Mail unter jugendfreizeit@rocksolidsiegen.de oder antworte auf diese E-Mail. </p>
         <p>Wir sind super gespannt und freuen uns auf dich!</p>
@@ -99,6 +103,8 @@ def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
         <p>------<br>
         Diese E-Mail wurde automatisch generiert.</p>
         """
+
+
 
     try:
         st.session_state["access_token"]
@@ -129,7 +135,8 @@ def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
             },
             # include attachments
             "attachments": [
-                attachment
+                attachment,
+                draft_agb_attachment()
             ]
         }
     }
