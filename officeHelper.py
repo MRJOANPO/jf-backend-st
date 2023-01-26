@@ -13,7 +13,7 @@ EMAIL_URL = START_POINT + NODE_EMAIL
 REDIRECT_URL = st.secrets["OFFICE"]["REDIRECT_URL"]
 # REDIRECT_URL = "http://localhost:8501/" # uncomment for local development
 AUTO_SIGN_IN = False
-AGB_FILE = "Zusatzbedingungen und Informationen RockSolid Jugendfreizeit.pdf"
+AGB_FILE = "ZusatzbedingungenundInformationenRockSolidJugendfreizeit.pdf"
 
 def draft_attachment(file_name, file_bytes):
     media_content = base64.b64encode(file_bytes)
