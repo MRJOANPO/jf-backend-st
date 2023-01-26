@@ -352,6 +352,7 @@ def finanzen_view():
         "Küche": data_total[KITCHEN_TEAM_COL]==1,
         "Geschw.": data_total[SIBLING_COL]==1,
         "Free": data_total[SPONSORED_COL]==1,
+        "Ext": data_total[EXTERNAL_STAFF_COL]==1,
         "Bus": data_total[BUS_COL]==1,
         "Kosten": total_calc,
         "Überwiesen": data_total[BALANCE_COL],
@@ -374,7 +375,7 @@ def finanzen_view():
         "Summe Kosten": babel.numbers.format_currency(finanz_data_raw["Kosten"].sum(), "EUR", locale="de_DE"),
         "Summe Überwiesen": babel.numbers.format_currency(finanz_data_raw["Überwiesen"].sum(), "EUR", locale="de_DE"),
         "Summe Ausstehend": babel.numbers.format_currency(finanz_data_raw["Ausstehend"].sum(), "EUR", locale="de_DE"),
-        "Anzahl MA": finanz_data_raw["MA"].sum(),
+        "Anzahl MA": finanz_data_raw["MA"].sum() + finanz_data_raw["Ext"].sum() ,
         "Anzahl Küche": finanz_data_raw["Küche"].sum(),
     }, index=[0])
 
