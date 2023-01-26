@@ -27,7 +27,7 @@ def draft_attachment(file_name, file_bytes):
 
 def draft_agb_attachment():
     with open(AGB_FILE, "rb") as agb_bytes:
-        return draft_attachment(AGB_FILE, agb_bytes)
+        return draft_attachment(AGB_FILE, agb_bytes.read())
 
 def send_to_authorize():
     login_url = f"{AUTHORITY_URL}oauth2/v2.0/authorize"
