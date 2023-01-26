@@ -226,6 +226,7 @@ def single_edit(primary=0):
 
         balance = st.number_input("Geldeingang", current_data[BALANCE_COL].values[0])
         support = st.number_input("Unterstützung", current_data[EXTRA_DISCOUNT_COL].values[0])
+        sibling_coming = st.checkbox("Geschwisterrabatt", current_data[SIBLING_COL].values[0])
         sponsored = st.checkbox("Kostenlos", current_data[SPONSORED_COL].values[0])
         staff = st.checkbox("Mitarbeiter", current_data[STAFF_COL].values[0])
         external_staff = st.checkbox("Externer Mitarbeiter", current_data[EXTERNAL_STAFF_COL].values[0])
@@ -234,7 +235,7 @@ def single_edit(primary=0):
 
         submit = st.form_submit_button()
         if submit:
-            update_query = f"UPDATE Anmeldung SET {FIRST_NAME_COL}='{first_name}', {LAST_NAME_COL}='{last_name}',{FORM_FOR_CHILD_COL}={form_for_child},{PARENT_FIRST_NAME_COL}='{parent_first_name}',{PARENT_LAST_NAME_COL}='{parent_last_name}',{PHONE_COL}='{phone}',{EMAIL_COL}='{email}',{PARENT_EMAIL_COL}='{parent_email}',{PARENT_PHONE_COL}='{parent_phone}',{ADDRESS_COL}='{address}',{ZIP_COL}={plz},{CITY_COL}='{city}',{COUNTRY_COL}='{country}',{GENDER_COL}='{gender}',{T_SHIRT_COL}='{t_shirt_size.lower()}',{BIRTHDAY_COL}='{birthday}',{DOCTOR_NAME_COL}='{doctor_name}',{DOCTOR_PHONE_COL}='{doctor_phone}',{EMERGENCY_CONTACT_1_NAME_COL}='{emergency_contact_1_name}',{EMERGENCY_CONTACT_1_PHONE_COL}='{emergency_contact_1_phone}',{EMERGENCY_CONTACT_2_NAME_COL}='{emergency_contact_2_name}',{EMERGENCY_CONTACT_2_PHONE_COL}='{emergency_contact_2_phone}',{ALLERGIES_COL}='{allergies}',{MENTAL_ISSUES_COL}='{mental_issues}',{CHRONICAL_DISEASES_COL}='{chronical_diseases}',{MEDICATION_COL}='{medication}',{ZIMMERWUNSCH_COL}='{zimmerwunsch}',{COMMENT_COL}='{comment}',{TETANUS_IMPFUNG_COL}={tetanus},{ZECKENIMPFUNG_COL}={zecken},{BUS_COL}={bus},{BUS_MUENSTER_COL}={bus_muenster},{SPONSORED_COL}={sponsored},{BALANCE_COL}={balance},{STAFF_COL}={staff},{CONFIRMED_COL}={confirmed},{EXTRA_DISCOUNT_COL}={support},{SWIM_CONFIRM_COL}={swim_confirm},{KITCHEN_TEAM_COL}={kitchen},{EXTERNAL_STAFF_COL}={external_staff},{LEAVE_CONFIRM_COL}={leave_confirm} WHERE {KEY_COL} = {current_id}"
+            update_query = f"UPDATE Anmeldung SET {FIRST_NAME_COL}='{first_name}', {LAST_NAME_COL}='{last_name}',{FORM_FOR_CHILD_COL}={form_for_child},{PARENT_FIRST_NAME_COL}='{parent_first_name}',{PARENT_LAST_NAME_COL}='{parent_last_name}',{PHONE_COL}='{phone}',{EMAIL_COL}='{email}',{PARENT_EMAIL_COL}='{parent_email}',{PARENT_PHONE_COL}='{parent_phone}',{ADDRESS_COL}='{address}',{ZIP_COL}={plz},{CITY_COL}='{city}',{COUNTRY_COL}='{country}',{GENDER_COL}='{gender}',{T_SHIRT_COL}='{t_shirt_size.lower()}',{BIRTHDAY_COL}='{birthday}',{DOCTOR_NAME_COL}='{doctor_name}',{DOCTOR_PHONE_COL}='{doctor_phone}',{EMERGENCY_CONTACT_1_NAME_COL}='{emergency_contact_1_name}',{EMERGENCY_CONTACT_1_PHONE_COL}='{emergency_contact_1_phone}',{EMERGENCY_CONTACT_2_NAME_COL}='{emergency_contact_2_name}',{EMERGENCY_CONTACT_2_PHONE_COL}='{emergency_contact_2_phone}',{ALLERGIES_COL}='{allergies}',{MENTAL_ISSUES_COL}='{mental_issues}',{CHRONICAL_DISEASES_COL}='{chronical_diseases}',{MEDICATION_COL}='{medication}',{ZIMMERWUNSCH_COL}='{zimmerwunsch}',{COMMENT_COL}='{comment}',{TETANUS_IMPFUNG_COL}={tetanus},{ZECKENIMPFUNG_COL}={zecken},{BUS_COL}={bus},{BUS_MUENSTER_COL}={bus_muenster},{SPONSORED_COL}={sponsored},{BALANCE_COL}={balance},{STAFF_COL}={staff},{CONFIRMED_COL}={confirmed},{EXTRA_DISCOUNT_COL}={support},{SWIM_CONFIRM_COL}={swim_confirm},{KITCHEN_TEAM_COL}={kitchen},{EXTERNAL_STAFF_COL}={external_staff},{LEAVE_CONFIRM_COL}={leave_confirm},{SIBLING_COL}={sibling_coming} WHERE {KEY_COL} = {current_id}"
             update_cursor = connection.cursor()
             update_cursor.execute(update_query)
             connection.commit()
@@ -249,9 +250,9 @@ def single_edit(primary=0):
 
 def rechnung_view(primary=0):
     st.sidebar.markdown("---")
-    only_no_invoice = st.sidebar.checkbox("Zeig nur Teilnehmer, welche noch keine Rechnung bekommen haben", True)
+    only_no_invoice = st.sidebar.checkbox("Zeig nur Teilnehmer, welche noch keine Rechnung bekommen haben und bestätigt wurden", True)
     if only_no_invoice:
-        data_selected = data_total[data_total[DATE_INVOICE_COL].isna()]
+        data_selected = data_total[data_total[DATE_INVOICE_COL].isna() & data_total[CONFIRMED_COL] == True]
         current_id = st.sidebar.selectbox("Namen auswählen", data_selected[KEY_COL], format_func=render_name, index=primary)
     else:
         current_id = st.sidebar.selectbox("Namen auswählen", data_total[KEY_COL], format_func=render_name, index=primary)
