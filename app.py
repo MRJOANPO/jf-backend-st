@@ -9,9 +9,9 @@ import babel.numbers
 import invoice_creator
 import officeHelper
 
-MONEY_EARLY = 268
-MONEY_LATE = 318
-MONEY_BUS = 80
+MONEY_EARLY = 258
+MONEY_LATE = 308
+MONEY_BUS = 90
 MONEY_SIBLING = -30
 MONEY_STAFF = -50
 MONEY_KITCHEN = 0
@@ -56,10 +56,12 @@ COMMENT_COL = "comment"
 SPONSORED_COL = "sponsored"
 BALANCE_COL = "balance"
 STAFF_COL = "mitarbeiter"
+EXTERNAL_STAFF_COL = "external_staff"
 KITCHEN_TEAM_COL = "kitchen_team"
 CONFIRMED_COL = "confirmed"
 DATE_INVOICE_COL = "last_rechnung_datetime"
 SWIM_CONFIRM_COL = "swim_confirm"
+LEAVE_CONFIRM_COL = "leave_confirm"
 EXTRA_DISCOUNT_COL = "extra_discount"
 
 ############### Functions ###############
@@ -111,20 +113,49 @@ def calc_kosten(current_data):
         discount = -total_cost
         discount_code += ("Küchenteam, ")
 
+    if current_data[EXTERNAL_STAFF_COL]:
+        discount = -total_cost
+        discount_code += ("Externer Mitarbeiter, ")
+
     if discount_code != "":
         discount_code = discount_code.rstrip(", ")
+
+    total_cost += discount
 
     return (total_cost, freizeitkosten, buskosten, discount, discount_code)
 
 def render_money(number):
     return babel.numbers.format_currency(number, "EUR", locale="de_DE")
+
+def privileges_checker(username:str, password:str) -> int:
+    regex = re.compile('[^a-zA-Z]')
+    username = regex.sub('', username)
+    username = username.lower()
+
+    login_cursor = connection.cursor()
+    login_query = f"SELECT * FROM Users WHERE `username`='{username}'"
+    login_cursor.execute(login_query)
+    login_data = login_cursor.fetchall()
+    if len(login_data) == 1:
+        correct_password = login_data[0][2]
+        if correct_password == password:
+            privilege_id =  login_data[0][3]
+            return privilege_id
+
+    if username != "":
+        st.write("Falscher Benutzer oder falsches Passwort")
+    return 0
+
 ############### Views ###############
 def all_view():
     st.markdown("### Anzahl Anmeldungen")
-    data_days = data_total.groupby(data_total[SIGN_UP_DATETIME].dt.date)[KEY_COL].count()
-    data_days.rename("Anzahl", inplace=True)
-    st.bar_chart(data_days)
-    st.dataframe(data_total)
+    if not len(data_total) == 0:
+        data_days = data_total.groupby(data_total[SIGN_UP_DATETIME].dt.date)[KEY_COL].count()
+        data_days.rename("Anzahl", inplace=True)
+        st.bar_chart(data_days)
+        st.dataframe(data_total)
+    else:
+        st.write("Momentan sind keine Daten vorhanden")
 
 def single_view(primary=0):
     current_id = st.sidebar.selectbox("Namen auswählen", data_total[KEY_COL], format_func=render_name, index=primary)
@@ -189,19 +220,21 @@ def single_edit(primary=0):
         tetanus = st.checkbox("Tetanus Impfung", current_data[TETANUS_IMPFUNG_COL].values[0])
         zecken = st.checkbox("Zecken Impfung", current_data[ZECKENIMPFUNG_COL].values[0])
         swim_confirm = st.checkbox("Darf schwimmen gehen", current_data[SWIM_CONFIRM_COL].values[0])
+        leave_confirm = st.checkbox("Darf das Gelände verlassen", current_data[LEAVE_CONFIRM_COL].values[0])
         bus = st.checkbox("Mit Busfahrt", current_data[BUS_COL].values[0])
         bus_muenster = st.checkbox("Mit Buszustieg in Münster", current_data[BUS_MUENSTER_COL].values[0])
 
         balance = st.number_input("Geldeingang", current_data[BALANCE_COL].values[0])
         support = st.number_input("Unterstützung", current_data[EXTRA_DISCOUNT_COL].values[0])
-        sponsored = st.checkbox("Gesponsert", current_data[SPONSORED_COL].values[0])
+        sponsored = st.checkbox("Kostenlos", current_data[SPONSORED_COL].values[0])
         staff = st.checkbox("Mitarbeiter", current_data[STAFF_COL].values[0])
+        external_staff = st.checkbox("Externer Mitarbeiter", current_data[EXTERNAL_STAFF_COL].values[0])
         kitchen = st.checkbox("Küchenteam", current_data[KITCHEN_TEAM_COL].values[0])
         confirmed = st.checkbox("Teilnahme bestätigt", current_data[CONFIRMED_COL].values[0])
 
         submit = st.form_submit_button()
         if submit:
-            update_query = f"UPDATE Anmeldung SET {FIRST_NAME_COL}='{first_name}', {LAST_NAME_COL}='{last_name}',{FORM_FOR_CHILD_COL}={form_for_child},{PARENT_FIRST_NAME_COL}='{parent_first_name}',{PARENT_LAST_NAME_COL}='{parent_last_name}',{PHONE_COL}='{phone}',{EMAIL_COL}='{email}',{PARENT_EMAIL_COL}='{parent_email}',{PARENT_PHONE_COL}='{parent_phone}',{ADDRESS_COL}='{address}',{ZIP_COL}={plz},{CITY_COL}='{city}',{COUNTRY_COL}='{country}',{GENDER_COL}='{gender}',{T_SHIRT_COL}='{t_shirt_size.lower()}',{BIRTHDAY_COL}='{birthday}',{DOCTOR_NAME_COL}='{doctor_name}',{DOCTOR_PHONE_COL}='{doctor_phone}',{EMERGENCY_CONTACT_1_NAME_COL}='{emergency_contact_1_name}',{EMERGENCY_CONTACT_1_PHONE_COL}='{emergency_contact_1_phone}',{EMERGENCY_CONTACT_2_NAME_COL}='{emergency_contact_2_name}',{EMERGENCY_CONTACT_2_PHONE_COL}='{emergency_contact_2_phone}',{ALLERGIES_COL}='{allergies}',{MENTAL_ISSUES_COL}='{mental_issues}',{CHRONICAL_DISEASES_COL}='{chronical_diseases}',{MEDICATION_COL}='{medication}',{ZIMMERWUNSCH_COL}='{zimmerwunsch}',{COMMENT_COL}='{comment}',{TETANUS_IMPFUNG_COL}={tetanus},{ZECKENIMPFUNG_COL}={zecken},{BUS_COL}={bus},{BUS_MUENSTER_COL}={bus_muenster},{SPONSORED_COL}={sponsored},{BALANCE_COL}={balance},{STAFF_COL}={staff},{CONFIRMED_COL}={confirmed},{EXTRA_DISCOUNT_COL}={support},{SWIM_CONFIRM_COL}={swim_confirm},{KITCHEN_TEAM_COL}={kitchen} WHERE {KEY_COL} = {current_id}"
+            update_query = f"UPDATE Anmeldung SET {FIRST_NAME_COL}='{first_name}', {LAST_NAME_COL}='{last_name}',{FORM_FOR_CHILD_COL}={form_for_child},{PARENT_FIRST_NAME_COL}='{parent_first_name}',{PARENT_LAST_NAME_COL}='{parent_last_name}',{PHONE_COL}='{phone}',{EMAIL_COL}='{email}',{PARENT_EMAIL_COL}='{parent_email}',{PARENT_PHONE_COL}='{parent_phone}',{ADDRESS_COL}='{address}',{ZIP_COL}={plz},{CITY_COL}='{city}',{COUNTRY_COL}='{country}',{GENDER_COL}='{gender}',{T_SHIRT_COL}='{t_shirt_size.lower()}',{BIRTHDAY_COL}='{birthday}',{DOCTOR_NAME_COL}='{doctor_name}',{DOCTOR_PHONE_COL}='{doctor_phone}',{EMERGENCY_CONTACT_1_NAME_COL}='{emergency_contact_1_name}',{EMERGENCY_CONTACT_1_PHONE_COL}='{emergency_contact_1_phone}',{EMERGENCY_CONTACT_2_NAME_COL}='{emergency_contact_2_name}',{EMERGENCY_CONTACT_2_PHONE_COL}='{emergency_contact_2_phone}',{ALLERGIES_COL}='{allergies}',{MENTAL_ISSUES_COL}='{mental_issues}',{CHRONICAL_DISEASES_COL}='{chronical_diseases}',{MEDICATION_COL}='{medication}',{ZIMMERWUNSCH_COL}='{zimmerwunsch}',{COMMENT_COL}='{comment}',{TETANUS_IMPFUNG_COL}={tetanus},{ZECKENIMPFUNG_COL}={zecken},{BUS_COL}={bus},{BUS_MUENSTER_COL}={bus_muenster},{SPONSORED_COL}={sponsored},{BALANCE_COL}={balance},{STAFF_COL}={staff},{CONFIRMED_COL}={confirmed},{EXTRA_DISCOUNT_COL}={support},{SWIM_CONFIRM_COL}={swim_confirm},{KITCHEN_TEAM_COL}={kitchen},{EXTERNAL_STAFF_COL}={external_staff},{LEAVE_CONFIRM_COL}={leave_confirm} WHERE {KEY_COL} = {current_id}"
             update_cursor = connection.cursor()
             update_cursor.execute(update_query)
             connection.commit()
@@ -347,6 +380,18 @@ def finanzen_view():
 
     st.write(finanz_data_sum)
 
+def need_for_login_view():
+    st.write("Anmeldung")
+    with st.form("Login"):
+        username = st.text_input(label="Benutzername")
+        password = st.text_input(label="Passwort", type="password")
+        if st.form_submit_button("Einloggen"):
+            st.session_state["privileges"] = privileges_checker(username, password)
+            if st.session_state["privileges"] != 0:
+                st.experimental_rerun()
+
+
+
 st.markdown("# JF 2023 Dashboard")
 
 connection = mysql.connector.connect(
@@ -357,17 +402,33 @@ connection = mysql.connector.connect(
     database=st.secrets["DATABASE_NAME"]
 )
 
-query = "SELECT * FROM `Anmeldung`"
-data_total = pd.read_sql(query, connection)
+if  "privileges" not in st.session_state:
+    st.session_state["privileges"] = 0
 
-views = {
-    "Übersicht": all_view,
-    "Einzelansicht": single_view,
-    "Bearbeiten": single_edit,
-    "Rechnungen": rechnung_view,
-    "Buchhaltung": buchhaltung_view,
-    "Finanzübersicht": finanzen_view,
-}
+if st.session_state["privileges"] == 1:
+    query = "SELECT * FROM `Anmeldung`"
+    data_total = pd.read_sql(query, connection)
+
+    views = {
+        "Übersicht": all_view,
+        "Einzelansicht": single_view,
+        "Bearbeiten": single_edit,
+        "Rechnungen": rechnung_view,
+        "Buchhaltung": buchhaltung_view,
+        "Finanzübersicht": finanzen_view,
+    }
+elif st.session_state["privileges"] == 2:
+    query = "SELECT * FROM `Anmeldung`"
+    data_total = pd.read_sql(query, connection)
+    views = {
+        "Übersicht": all_view,
+        "Buchhaltung": buchhaltung_view,
+        "Finanzübersicht": finanzen_view,
+    }
+else:
+    views = {
+        "Einloggen": need_for_login_view,
+    }
 
 view = st.sidebar.radio("Ansicht", views)
 
