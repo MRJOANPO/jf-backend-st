@@ -128,6 +128,13 @@ def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
             ],
             # email subject
             "subject": "Jugendfreizeit 2023 | Rechnung",
+            "replyTo": [
+                {
+                    "emailAddress": {
+                        "address": "jugendfreizeit@rocksolidsiegen.de"
+                    }
+                }
+            ],
             "importance": "normal",
             "body": {
                 "contentType": "HTML",
