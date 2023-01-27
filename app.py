@@ -362,13 +362,13 @@ def finanzen_view():
     })
 
     finanz_data["Ausstehend"] = finanz_data["Kosten"] - finanz_data["Überwiesen"]
+    finanz_data = finanz_data[finanz_data["Rechnung"] == 0]
+    finanz_data.drop(columns=["Rechnung"], inplace=True)
     finanz_data_raw = finanz_data.copy()
 
     finanz_data["Ausstehend"] = finanz_data["Ausstehend"].apply(render_money)
     finanz_data["Kosten"] = finanz_data["Kosten"].apply(render_money)
     finanz_data["Überwiesen"] = finanz_data["Überwiesen"].apply(render_money)
-    finanz_data = finanz_data[finanz_data["Rechnung"] == 0]
-    finanz_data.drop(columns=["Rechnung"], inplace=True)
     st.dataframe(finanz_data)
 
     st.markdown("### Zusammenfassung")
