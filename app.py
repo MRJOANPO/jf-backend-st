@@ -146,6 +146,15 @@ def privileges_checker(username:str, password:str) -> int:
         st.write("Falscher Benutzer oder falsches Passwort")
     return 0
 
+@st.experimental_memo
+def convert_dataframe(df: pd.DataFrame):
+    return df.to_csv(
+        index=False,
+        sep=";",
+        decimal=",",
+        encoding="utf8"
+    ).encode("utf8")
+
 ############### Views ###############
 def all_view():
     st.markdown("### Anzahl Anmeldungen")
@@ -154,6 +163,13 @@ def all_view():
         data_days.rename("Anzahl", inplace=True)
         st.bar_chart(data_days)
         st.dataframe(data_total)
+        csv = convert_dataframe(data_total)
+        st.download_button(
+            "Alle Daten herunterladen",
+            csv,
+            f"JugendfreizeitExport{datetime.datetime.now().strftime('%Y%m%d')}.csv",
+            "text/csv"
+        )
     else:
         st.write("Momentan sind keine Daten vorhanden")
 
