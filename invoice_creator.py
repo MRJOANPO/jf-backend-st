@@ -71,7 +71,7 @@ class Invoice_PDF(FPDF):
         # Page number
         self.cell(0, height, 'Seite ' + str(self.page_no()) + '/{nb}', 0, 0, 'C')
 
-    def write_personal_data(self, current_id:int, name_rechnung:str, name_teilnehmer:str, address_street:str, plz:int, city:str, country:str, freizeit_kosten:float, busfahrt_kosten:float, discount:float, discount_code:str):
+    def write_personal_data(self, current_id:int, name_rechnung:str, name_teilnehmer:str, address_street:str, plz:int, city:str, country:str, freizeit_kosten:float, busfahrt_kosten:float, busfahrt:bool, discount:float, discount_code:str):
         self.set_font("Brandon", "N", self.font_size_p)
         height = self.calc_height_in_mm(1.5)
         self.text(25, 50+height, f"{name_rechnung}")
@@ -105,11 +105,11 @@ class Invoice_PDF(FPDF):
         self.cell(width_cost_col, height, f"{format_currency(freizeit_kosten, 'EUR', locale='de_DE')}", 0, 1, "L")
 
         # Buskosten
-        if busfahrt_kosten != 0:
+        if busfahrt:
             pos = pos + 1
             self.cell(width_pos_col, height, f"{pos}", 0, 0, "C")
             self.cell(width_description_col, height, f"Busfahrt für {name_teilnehmer}", 0, 0, "L")
-            self.cell(width_cost_col, height, f"{format_currency(busfahrt_kosten, 'EUR', locale='de_DE')}", 0, 1, "L")
+            # self.cell(width_cost_col, height, f"{format_currency(busfahrt_kosten, 'EUR', locale='de_DE')}", 0, 1, "L")
 
         if discount != 0:
             pos = pos + 1
@@ -129,8 +129,9 @@ class Invoice_PDF(FPDF):
         # Abschließender Text
         self.set_font("Brandon", "N", self.font_size_p)
         height = self.calc_height_in_mm()
-        self.write(height, "Den Betrag bitte bis zum 15.05.2023 auf das untenstehende Konto überweisen. Der Rechnungsbetrag enthält keine Umsatzsteuer.")
-        self.ln(height*2)
+        self.cell(0, height, "Den Betrag bitte bis zum 15.05.2023 auf das untenstehende Konto überweisen.", 0, 1, "L")
+        self.cell(0, height, "Der Rechnungsbetrag enthält keine Umsatzsteuer.", 0, 1, "L")
+        self.ln(height)
         self.cell(0, height, "Bankverbindungen:", 0, 1, "L")
         self.cell(0, height, "Name: Calvary Chapel Siegen e.V. (RockSolid)", 0, 1, "L")
         self.cell(0, height, "IBAN: DE49 4476 1534 0829 9190 05", 0, 1, "L")
@@ -141,8 +142,8 @@ class Invoice_PDF(FPDF):
         self.cell(0, height, "Euer Freizeitteam", 0, 1, "L")
 
 
-def create_pdf(current_id:int, invoice_name:str, name_teilnehmer:str, address_street:str, address_zip:int, address_city:str, address_country:str, freizeit_kosten:float, busfahrt_kosten:float, discount:float, discount_code:str) -> FPDF:
+def create_pdf(current_id:int, invoice_name:str, name_teilnehmer:str, address_street:str, address_zip:int, address_city:str, address_country:str, freizeit_kosten:float, busfahrt_kosten:float, busfahrt:bool, discount:float, discount_code:str) -> FPDF:
     # Instantiation of inherited class
     pdf = Invoice_PDF('P', 'mm', 'A4')
-    pdf.write_personal_data(current_id, invoice_name, name_teilnehmer, address_street, address_zip, address_city, address_country, freizeit_kosten, busfahrt_kosten, discount, discount_code)
+    pdf.write_personal_data(current_id, invoice_name, name_teilnehmer, address_street, address_zip, address_city, address_country, freizeit_kosten, busfahrt_kosten, busfahrt, discount, discount_code)
     return pdf

@@ -93,7 +93,7 @@ def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
         """
     else:
         html_content = f"""
-        <p>Hallo {name}, </p>
+        <p>Hey {name}, </p>
         <p>Wohooo! Wir freuen uns, dass du bei der Jugendfreizeit 2023 dabei bist.
         Anbei findest du die Rechnung. Sollte irgendwas unklar sein, schreib uns einfach eine
         E-Mail unter jugendfreizeit@rocksolidsiegen.de oder antworte auf diese E-Mail. </p>

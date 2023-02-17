@@ -9,9 +9,9 @@ import babel.numbers
 import invoice_creator
 import officeHelper
 
-MONEY_EARLY = 258
-MONEY_LATE = 308
-MONEY_BUS = 90
+MONEY_EARLY = 358
+MONEY_LATE = 398
+MONEY_BUS = 0
 MONEY_SIBLING = -30
 MONEY_STAFF = -50
 MONEY_KITCHEN = 0
@@ -63,6 +63,7 @@ DATE_INVOICE_COL = "last_rechnung_datetime"
 SWIM_CONFIRM_COL = "swim_confirm"
 LEAVE_CONFIRM_COL = "leave_confirm"
 EXTRA_DISCOUNT_COL = "extra_discount"
+DELETED_COL = "deleted"
 
 ############### Functions ###############
 def render_name(primary):
@@ -173,19 +174,7 @@ def all_view():
     else:
         st.write("Momentan sind keine Daten vorhanden")
 
-def single_view(primary=0):
-    current_id = st.sidebar.selectbox("Namen auswählen", data_total[KEY_COL], format_func=render_name, index=primary)
-    current_data = data_total[data_total[KEY_COL]==current_id]
-    current_name = current_data[FIRST_NAME_COL] + " " + current_data[LAST_NAME_COL]
-    try:
-        st.markdown(f"### {current_name.values[0]}")
-    except IndexError:
-        st.markdown("Keine Daten zum Anzeigen")
-        return
-
-    st.dataframe(current_data.T, use_container_width=True)
-
-def single_edit(primary=0):
+def confirm_signup(primary=0):
     st.sidebar.markdown("---")
     only_not_approved = st.sidebar.checkbox("Zeig nur Teilnehmer, welche noch nicht bestätigt wurden", True)
     if only_not_approved:
@@ -194,7 +183,61 @@ def single_edit(primary=0):
     else:
         current_id = st.sidebar.selectbox("Namen auswählen", data_total[KEY_COL], format_func=render_name, index=primary)
 
-    # current_id = st.sidebar.selectbox("Namen auswählen", data_total[KEY_COL], format_func=render_name, index=primary)
+    current_data = data_total[data_total[KEY_COL]==current_id]
+
+    try:
+        current_name = current_data[FIRST_NAME_COL].values[0] + " " + current_data[LAST_NAME_COL].values[0]
+    except IndexError:
+        st.markdown("Keine Daten zum Anzeigen")
+        return
+
+    st.markdown(f"### Antrag auf Teilnahme von {current_name} ({current_id})")
+    st.write(f"**Vorname:** {current_data[FIRST_NAME_COL].values[0]}")
+    st.write(f"**Nachname:** {current_data[LAST_NAME_COL].values[0]}")
+    st.write(f"**Für Kind:** {current_data[FORM_FOR_CHILD_COL].values[0]}")
+    st.write(f"**Vorname des Erziehungsberechtigten:** {current_data[PARENT_FIRST_NAME_COL].values[0]}")
+    st.write(f"**Nachname des Erziehungsberechtigten:** {current_data[PARENT_LAST_NAME_COL].values[0]}")
+    st.write(f"**E-Mail:** {current_data[EMAIL_COL].values[0]}")
+    st.write(f"**Nachname:** {current_data[PHONE_COL].values[0]}")
+    st.write(f"**E-Mail Eltern:** {current_data[PARENT_EMAIL_COL].values[0]}")
+    st.write(f"**Telefon Eltern:** {current_data[PARENT_PHONE_COL].values[0]}")
+    st.write(f"**Adresse:** {current_data[ADDRESS_COL].values[0]}")
+    st.write(f"**PLZ:** {current_data[ZIP_COL].values[0]}")
+    st.write(f"**Stadt:** {current_data[CITY_COL].values[0]}")
+    st.write(f"**Land:** {current_data[COUNTRY_COL].values[0]}")
+    st.write(f"**Geschlecht (m/w):** {current_data[GENDER_COL].values[0]}")
+    st.write(f"**T-Shirt-Size:** {current_data[T_SHIRT_COL].values[0]}")
+    st.write(f"**Geburtstag:** {current_data[BIRTHDAY_COL].values[0]}")
+    st.write(f"**Arzt Name:** {current_data[DOCTOR_NAME_COL].values[0]}")
+    st.write(f"**Arzt Telefon:** {current_data[DOCTOR_PHONE_COL].values[0]}")
+    st.write(f"**Notfallkontakt 1 Name:** {current_data[EMERGENCY_CONTACT_1_NAME_COL].values[0]}")
+    st.write(f"**Notfallkontakt 1 Telefon:** {current_data[EMERGENCY_CONTACT_1_PHONE_COL].values[0]}")
+    st.write(f"**Notfallkontakt 2 Name:** {current_data[EMERGENCY_CONTACT_2_NAME_COL].values[0]}")
+    st.write(f"**Notfallkontakt 2 Telefon:** {current_data[EMERGENCY_CONTACT_2_PHONE_COL].values[0]}")
+    st.write(f"**Allergien:** {current_data[ALLERGIES_COL].values[0]}")
+    st.write(f"**Geistige oder soziale Beeinträchtigungen:** {current_data[MENTAL_ISSUES_COL].values[0]}")
+    st.write(f"**Chronische Erkrankungen:** {current_data[CHRONICAL_DISEASES_COL].values[0]}")
+    st.write(f"**Regelmäßige Medikamenteneinnahme:** {current_data[MEDICATION_COL].values[0]}")
+    st.write(f"**Zimmerwunsch:** {current_data[ZIMMERWUNSCH_COL].values[0]}")
+    st.write(f"**Kommentar:** {current_data[COMMENT_COL].values[0]}")
+    st.write(f"**Tetanus Impfung:** {current_data[TETANUS_IMPFUNG_COL].values[0]}")
+    st.write(f"**Zecken Impfung:** {current_data[ZECKENIMPFUNG_COL].values[0]}")
+    st.write(f"**Darf schwimmen gehen:** {current_data[SWIM_CONFIRM_COL].values[0]}")
+    st.write(f"**Darf das Gelände verlassen:** {current_data[LEAVE_CONFIRM_COL].values[0]}")
+    st.write(f"**Mit Busfahrt:** {current_data[BUS_COL].values[0]}")
+    st.write(f"**Mit Buszustieg in Münster:** {current_data[BUS_MUENSTER_COL].values[0]}")
+
+    with st.form("Anmeldung bestätigen"):
+        confirmed = st.checkbox(f"Teilnahme für {current_name} bestätigt", current_data[CONFIRMED_COL].values[0])
+        if st.form_submit_button("Absenden"):
+            update_query = f"UPDATE Anmeldung SET {CONFIRMED_COL}={confirmed} WHERE `id`={current_id}"
+            update_cursor = connection.cursor()
+            update_cursor.execute(update_query)
+            connection.commit()
+            st.write(f"{update_cursor.rowcount} Datensatz aktualisiert")
+
+def single_edit(primary=0):
+    current_id = st.sidebar.selectbox("Namen auswählen", data_total[KEY_COL], format_func=render_name, index=primary)
     current_data = data_total[data_total[KEY_COL]==current_id]
 
     try:
@@ -258,7 +301,7 @@ def single_edit(primary=0):
             st.write(f"{update_cursor.rowcount} Datensatz aktualisiert")
 
     if st.button("Löschen"):
-        delete_query = f"DELETE FROM Anmeldung WHERE id={current_id}"
+        delete_query = f"UPDATE Anmeldung SET {DELETED_COL}=1 WHERE id={current_id}"
         delete_cursor = connection.cursor()
         delete_cursor.execute(delete_query)
         connection.commit()
@@ -296,7 +339,12 @@ def rechnung_view(primary=0):
                 email_main = current_data[EMAIL_COL].values[0]
                 is_parent = False
 
-            _, freizeitkosten, buskosten, discount, discount_code = calc_kosten(current_data)
+            _, freizeitkosten, _, discount, discount_code = calc_kosten(current_data)
+
+            if int(current_data[BUS_COL].values[0])==1:
+                busfahrt = True
+            else:
+                busfahrt = False
 
             data_invoice = {
                 "current_id": current_id,
@@ -307,7 +355,8 @@ def rechnung_view(primary=0):
                 "address_city": current_data[CITY_COL].values[0],
                 "address_country": current_data[COUNTRY_COL].values[0],
                 "freizeit_kosten": freizeitkosten,
-                "busfahrt_kosten": buskosten,
+                "busfahrt_kosten": MONEY_BUS,
+                "busfahrt": busfahrt,
                 "discount": -discount,
                 "discount_code": discount_code
             }
@@ -419,25 +468,25 @@ connection = mysql.connector.connect(
     password=st.secrets["DATABASE_PASSWORD"],
     database=st.secrets["DATABASE_NAME"]
 )
-
+get_all_query = "SELECT * FROM `Anmeldung` WHERE deleted = 0"
 if  "privileges" not in st.session_state:
     st.session_state["privileges"] = 0
 
+st.write(st.session_state["privileges"])
+
 if st.session_state["privileges"] == 1:
-    query = "SELECT * FROM `Anmeldung`"
-    data_total = pd.read_sql(query, connection)
+    data_total = pd.read_sql(get_all_query, connection)
 
     views = {
         "Übersicht": all_view,
-        "Einzelansicht": single_view,
+        "Teilnahme bestätigen": confirm_signup,
         "Bearbeiten": single_edit,
         "Rechnungen": rechnung_view,
         "Buchhaltung": buchhaltung_view,
         "Finanzübersicht": finanzen_view,
     }
 elif st.session_state["privileges"] == 2:
-    query = "SELECT * FROM `Anmeldung`"
-    data_total = pd.read_sql(query, connection)
+    data_total = pd.read_sql(get_all_query, connection)
     views = {
         "Übersicht": all_view,
         "Buchhaltung": buchhaltung_view,
