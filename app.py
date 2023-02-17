@@ -451,7 +451,7 @@ def need_for_login_view():
     st.write("Anmeldung")
     with st.form("Login"):
         username = st.text_input(label="Benutzername")
-        password = st.text_input(label="Passwort", type="password")
+        password = st.text_input(label="Passwort", type="password", autocomplete="password")
         if st.form_submit_button("Einloggen"):
             st.session_state["privileges"] = privileges_checker(username, password)
             if st.session_state["privileges"] != 0:
