@@ -472,8 +472,6 @@ get_all_query = "SELECT * FROM `Anmeldung` WHERE deleted = 0"
 if  "privileges" not in st.session_state:
     st.session_state["privileges"] = 0
 
-st.write(st.session_state["privileges"])
-
 if st.session_state["privileges"] == 1:
     data_total = pd.read_sql(get_all_query, connection)
 
