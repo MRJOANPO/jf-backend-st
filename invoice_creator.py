@@ -109,13 +109,14 @@ class Invoice_PDF(FPDF):
             pos = pos + 1
             self.cell(width_pos_col, height, f"{pos}", 0, 0, "C")
             self.cell(width_description_col, height, f"Busfahrt für {name_teilnehmer}", 0, 0, "L")
+            self.cell(width_cost_col, height, "", 0, 1, "L")
             # self.cell(width_cost_col, height, f"{format_currency(busfahrt_kosten, 'EUR', locale='de_DE')}", 0, 1, "L")
 
         if discount != 0:
             pos = pos + 1
             self.cell(width_pos_col, height, f"{pos}", 0, 0, "C")
             self.cell(width_description_col, height, f"Rabatt ({discount_code})", 0, 0, "L")
-            self.cell(width_cost_col, height, f"{format_currency(discount, 'EUR', locale='de_DE')}", 0, 1, "L")
+            self.cell(width_cost_col, height, f"{format_currency(-discount, 'EUR', locale='de_DE')}", 0, 1, "L")
 
         # Gesamtbetrag
         gesamtbetrag = freizeit_kosten + busfahrt_kosten - discount

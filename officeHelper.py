@@ -78,7 +78,7 @@ def set_access_token():
     except KeyError:
         st.session_state["access_token"] = ""
 
-def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
+def send_email_rechnung(email_recipient, name, invoice_pdf, is_parent:bool):
     if is_parent:
         html_content = f"""
         <p>Hallo {name}, </p>
@@ -104,8 +104,49 @@ def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
         Diese E-Mail wurde automatisch generiert.</p>
         """
 
+    attachments = [invoice_pdf, draft_agb_attachment()]
+    subject = "Jugendfreizeit 2023 | Rechnung"
 
+    return send_email(html_content, subject, email_recipient, attachments)
 
+def send_zahlungserinnerung(email_recipient, name, invoice_pdf, is_parent:bool, betrag_eingang, betrag_ausstehend, betrag_gesamt):
+    if is_parent:
+        html_content = f"""
+        <p>Hallo {name}, </p>
+        <p>Wir wollten dich nur noch mal kurz dran erinnern, dass der
+        Zahlungsbeitrag für die Jugendfreizeit für dein Kind ansteht.
+        Von den {betrag_ausstehend} haben wir {betrag_eingang} erhalten.
+        Bitte überweise also noch die restlichen {betrag_ausstehend}.
+        Wir haben unten noch mal die ursprüngliche Rechnung für den Gesamtbetrag angehängt.</p>
+        <p>Solltest du Fragen haben oder irgendetwas unklar sein, schreib uns einfach eine
+        E-Mail unter jugendfreizeit@rocksolidsiegen.de oder antworte auf diese E-Mail.
+        <p>Gottes Segen,<br>
+        Das Jugendfreizeitteam </p>
+        <p>------<br>
+        Diese E-Mail wurde automatisch generiert.</p>
+        """
+    else:
+        html_content = f"""
+        <p>Hallo {name}, </p>
+        <p>Wir wollten dich nur noch mal kurz dran erinnern, dass dein
+        Zahlungsbeitrag für die Jugendfreizeit ansteht.
+        Von den {betrag_ausstehend} haben wir {betrag_eingang} erhalten.
+        Bitte überweise also noch die restlichen {betrag_ausstehend}.
+        Wir haben unten noch mal die ursprüngliche Rechnung für den Gesamtbetrag angehängt.</p>
+        <p>Solltest du Fragen haben oder irgendetwas unklar sein, schreib uns einfach eine
+        E-Mail unter jugendfreizeit@rocksolidsiegen.de oder antworte auf diese E-Mail.
+        <p>Gottes Segen,<br>
+        Das Jugendfreizeitteam </p>
+        <p>------<br>
+        Diese E-Mail wurde automatisch generiert.</p>
+        """
+
+    attachments = [invoice_pdf, draft_agb_attachment()]
+    subject = "Jugendfreizeit 2023 | Zahlungserinnerung"
+
+    return send_email(html_content, subject, email_recipient, attachments)
+
+def send_email(body:str, subject:str, email_recipient: str, attachments:list):
     try:
         st.session_state["access_token"]
     except KeyError:
@@ -127,7 +168,7 @@ def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
                 }
             ],
             # email subject
-            "subject": "Jugendfreizeit 2023 | Rechnung",
+            "subject": subject,
             "replyTo": [
                 {
                     "emailAddress": {
@@ -138,13 +179,10 @@ def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
             "importance": "normal",
             "body": {
                 "contentType": "HTML",
-                "content": html_content
+                "content": body
             },
             # include attachments
-            "attachments": [
-                attachment,
-                draft_agb_attachment()
-            ]
+            "attachments": attachments
         }
     }
 
@@ -156,7 +194,6 @@ def send_email_rechnung(email_recipient, name, attachment, is_parent:bool):
         return False
 
     return True
-
 
 def reauthorize_button():
     st.write("Du bist derzeit nicht autorisiert. Versuche dich erneut zu autorisieren.")

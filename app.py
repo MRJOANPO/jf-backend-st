@@ -125,6 +125,16 @@ def calc_kosten(current_data):
 
     return (total_cost, freizeitkosten, buskosten, discount, discount_code)
 
+def calc_balance(current_data):
+    total_kosten, _, _, _, _  = calc_kosten(current_data)
+
+    try:
+        current_data = current_data.iloc[0,:]
+    except pd.errors.IndexingError:
+        pass
+
+    return total_kosten - current_data[BALANCE_COL]
+
 def render_money(number):
     return babel.numbers.format_currency(number, "EUR", locale="de_DE")
 
@@ -156,13 +166,128 @@ def convert_dataframe(df: pd.DataFrame):
         encoding="utf8"
     ).encode("utf8")
 
+def calc_age(born: datetime.date):
+    today = datetime.date.today()
+    return today.year - born.year - ((today.month,
+                                      today.day) < (born.month,
+                                                    born.day))
+
+def convert_bool_to_text(value:int) -> str:
+    if value == 1:
+        return "ja"
+
+    return "nein"
+
+def display_gender(value:str) -> str:
+    if value == "w":
+        return "weiblich"
+
+    return "männlich"
+
+def delete_person(current_id:int):
+    delete_query = f"UPDATE Anmeldung SET {DELETED_COL}=1 WHERE id={current_id}"
+    delete_cursor = connection.cursor()
+    delete_cursor.execute(delete_query)
+    connection.commit()
+    st.write(f"{delete_cursor.rowcount} Datensatz gelöscht")
+    st.experimental_rerun()
+
+def send_zahlungserinnerung(current_data, current_id, current_name):
+    if current_data[CONFIRMED_COL] == 1:
+        if pd.isna(current_data[DATE_INVOICE_COL]) is False:
+            if current_data[FORM_FOR_CHILD_COL]:
+                            # Invoice at Parent
+                invoice_name = current_data[PARENT_FIRST_NAME_COL] + " " + current_data[PARENT_LAST_NAME_COL]
+                email_main = current_data[PARENT_EMAIL_COL]
+                is_parent = True
+            else:
+                invoice_name = current_name
+                email_main = current_data[EMAIL_COL]
+                is_parent = False
+
+            gesamt_kosten , freizeitkosten, _, discount, discount_code = calc_kosten(current_data)
+
+            busfahrt = int(current_data[BUS_COL])==1
+
+            data_invoice = {
+                            "current_id": current_id,
+                            "invoice_name": invoice_name,
+                            "name_teilnehmer": current_name,
+                            "address_street": current_data[ADDRESS_COL],
+                            "address_zip": current_data[ZIP_COL],
+                            "address_city": current_data[CITY_COL],
+                            "address_country": current_data[COUNTRY_COL],
+                            "freizeit_kosten": freizeitkosten,
+                            "busfahrt_kosten": MONEY_BUS,
+                            "busfahrt": busfahrt,
+                            "discount": -discount,
+                            "discount_code": discount_code
+                        }
+            file_name_pdf = f"JF2023-{current_id:03}.pdf"
+            pdf = invoice_creator.create_pdf(**data_invoice)
+            pdf_bytes = pdf.output(file_name_pdf, "S").encode('latin-1')
+            pdf_attachment = officeHelper.draft_attachment(file_name_pdf, pdf_bytes)
+
+            email_kosten_ausstehend = render_money(gesamt_kosten - current_data[BALANCE_COL])
+            email_kosten_total = render_money(gesamt_kosten)
+            email_kosten_erhalten = render_money(current_data[BALANCE_COL])
+
+            if officeHelper.send_zahlungserinnerung(
+                                email_main, invoice_name,
+                                pdf_attachment,
+                                is_parent,
+                                email_kosten_erhalten,
+                                email_kosten_ausstehend,
+                                email_kosten_total
+                            ):
+                    st.write(f"Zahlungserinnerung für {current_name} wurde per E-Mail versandt")
+        else:
+            st.write("Zahlungserinnerung kann nicht ausgestellt werden, weil Teilnehmer noch nie eine Rechnung bekommen hat.")
+    else:
+        st.write("Rechnung konnte nicht ausgestellt werden, da Teilnehmer nicht bestätigt")
+
 ############### Views ###############
 def all_view():
-    st.markdown("### Anzahl Anmeldungen")
+
     if not len(data_total) == 0:
+        st.markdown("### Anzahl Anmeldungen")
         data_days = data_total.groupby(data_total[SIGN_UP_DATETIME].dt.date)[KEY_COL].count()
         data_days.rename("Anzahl", inplace=True)
         st.bar_chart(data_days)
+        st.write(f"Anzahl Anmeldungen: {len(data_total)}")
+
+        st.markdown("### Alter")
+        ages_data = data_total[BIRTHDAY_COL].apply(calc_age)
+        age_average_total = ages_data.mean()
+        age_average_mitarbeiter = ages_data[(data_total[STAFF_COL]==1) | (data_total[EXTERNAL_STAFF_COL]==1) | (data_total[KITCHEN_TEAM_COL]==1)].mean()
+        age_average_teilnehmer = ages_data[(data_total[STAFF_COL]==0) & (data_total[EXTERNAL_STAFF_COL]==0) & (data_total[KITCHEN_TEAM_COL]==0)].mean()
+        ages_grouped = ages_data.groupby(ages_data).count()
+        ages_grouped.rename("Alter", inplace=True)
+        st.bar_chart(ages_grouped)
+        st.markdown(f"**Durchschnitt**: {age_average_total:.1f} *(alle)*, {age_average_teilnehmer:.1f} *(Teilnehmer)*, {age_average_mitarbeiter:.1f} *(Mitarbeiter)*")
+
+        st.markdown("### T-Shirt Größen")
+        t_shirt_data = data_total.groupby(T_SHIRT_COL)[KEY_COL].count()
+        t_shirt_data.rename("T-Shirt Größen", inplace=True)
+        st.bar_chart(t_shirt_data)
+
+        st.markdown("### Geschlecht")
+        gender_data = data_total.groupby(GENDER_COL)[KEY_COL].count()
+        gender_data.rename("Geschlecht", inplace=True)
+        st.bar_chart(gender_data)
+
+        st.markdown("### Mitarbeiter und Teilnehmer")
+        count_ma = len(data_total[data_total[STAFF_COL]==1])
+        count_ext_ma = len(data_total[data_total[STAFF_COL]==1])
+        count_kitchen = len(data_total[data_total[STAFF_COL]==1])
+        count_teilnehmer = len(data_total) - count_ma - count_ext_ma - count_kitchen
+        data_aufteilung = pd.DataFrame(
+            {"Aufteilung": [count_teilnehmer, count_ma, count_ext_ma, count_ext_ma]},
+            index=["Teilnehmer", "Mitarbeiter", "Externe Mitarbeiter", "Küchenteam"]
+        )
+        st.bar_chart(data_aufteilung)
+
+        st.markdown("### Alle Daten")
         st.dataframe(data_total)
         csv = convert_dataframe(data_total)
         st.download_button(
@@ -191,41 +316,55 @@ def confirm_signup(primary=0):
         st.markdown("Keine Daten zum Anzeigen")
         return
 
-    st.markdown(f"### Antrag auf Teilnahme von {current_name} ({current_id})")
+    st.markdown(f"### Antrag auf Teilnahme für {current_name} ({current_id})")
+
+    filled_out_by_parent = current_data[FORM_FOR_CHILD_COL].values[0] == 1
+
+    if filled_out_by_parent:
+        st.markdown("#### Daten der Eltern")
+        st.write(f"**Vorname:** {current_data[PARENT_FIRST_NAME_COL].values[0]}")
+        st.write(f"**Nachname:** {current_data[PARENT_LAST_NAME_COL].values[0]}")
+        st.write(f"**E-Mail:** {current_data[PARENT_EMAIL_COL].values[0]}")
+        st.write(f"**Telefon:** {current_data[PARENT_PHONE_COL].values[0]}")
+        st.write(f"**Adresse:** {current_data[ADDRESS_COL].values[0]}, {current_data[ZIP_COL].values[0]} {current_data[CITY_COL].values[0]}, {current_data[COUNTRY_COL].values[0]}")
+        st.write(f"**Darf schwimmen gehen:** {convert_bool_to_text(current_data[SWIM_CONFIRM_COL].values[0])}")
+        st.write(f"**Darf das Gelände verlassen:** {convert_bool_to_text(current_data[LEAVE_CONFIRM_COL].values[0])}")
+
+    st.markdown("#### Daten Teilnehmer")
     st.write(f"**Vorname:** {current_data[FIRST_NAME_COL].values[0]}")
     st.write(f"**Nachname:** {current_data[LAST_NAME_COL].values[0]}")
-    st.write(f"**Für Kind:** {current_data[FORM_FOR_CHILD_COL].values[0]}")
-    st.write(f"**Vorname des Erziehungsberechtigten:** {current_data[PARENT_FIRST_NAME_COL].values[0]}")
-    st.write(f"**Nachname des Erziehungsberechtigten:** {current_data[PARENT_LAST_NAME_COL].values[0]}")
+    st.write(f"**Geschlecht:** {display_gender(current_data[GENDER_COL].values[0])}")
     st.write(f"**E-Mail:** {current_data[EMAIL_COL].values[0]}")
-    st.write(f"**Nachname:** {current_data[PHONE_COL].values[0]}")
-    st.write(f"**E-Mail Eltern:** {current_data[PARENT_EMAIL_COL].values[0]}")
-    st.write(f"**Telefon Eltern:** {current_data[PARENT_PHONE_COL].values[0]}")
-    st.write(f"**Adresse:** {current_data[ADDRESS_COL].values[0]}")
-    st.write(f"**PLZ:** {current_data[ZIP_COL].values[0]}")
-    st.write(f"**Stadt:** {current_data[CITY_COL].values[0]}")
-    st.write(f"**Land:** {current_data[COUNTRY_COL].values[0]}")
-    st.write(f"**Geschlecht (m/w):** {current_data[GENDER_COL].values[0]}")
+    st.write(f"**Telefonnummer:** {current_data[PHONE_COL].values[0]}")
+
+    if not filled_out_by_parent:
+        st.write(f"**Adresse:** {current_data[ADDRESS_COL].values[0]}, {current_data[ZIP_COL].values[0]} {current_data[CITY_COL].values[0]}, {current_data[COUNTRY_COL].values[0]}")
+
     st.write(f"**T-Shirt-Size:** {current_data[T_SHIRT_COL].values[0]}")
-    st.write(f"**Geburtstag:** {current_data[BIRTHDAY_COL].values[0]}")
+    st.write(f"**Geburtstag:** {current_data[BIRTHDAY_COL].values[0]} ({current_data[BIRTHDAY_COL].apply(calc_age).values[0]} Jahre)")
+
+    st.markdown("#### Medizinische Daten")
     st.write(f"**Arzt Name:** {current_data[DOCTOR_NAME_COL].values[0]}")
     st.write(f"**Arzt Telefon:** {current_data[DOCTOR_PHONE_COL].values[0]}")
     st.write(f"**Notfallkontakt 1 Name:** {current_data[EMERGENCY_CONTACT_1_NAME_COL].values[0]}")
     st.write(f"**Notfallkontakt 1 Telefon:** {current_data[EMERGENCY_CONTACT_1_PHONE_COL].values[0]}")
-    st.write(f"**Notfallkontakt 2 Name:** {current_data[EMERGENCY_CONTACT_2_NAME_COL].values[0]}")
-    st.write(f"**Notfallkontakt 2 Telefon:** {current_data[EMERGENCY_CONTACT_2_PHONE_COL].values[0]}")
+    if not filled_out_by_parent:
+        st.write(f"**Notfallkontakt 2 Name:** {current_data[EMERGENCY_CONTACT_2_NAME_COL].values[0]}")
+        st.write(f"**Notfallkontakt 2 Telefon:** {current_data[EMERGENCY_CONTACT_2_PHONE_COL].values[0]}")
     st.write(f"**Allergien:** {current_data[ALLERGIES_COL].values[0]}")
     st.write(f"**Geistige oder soziale Beeinträchtigungen:** {current_data[MENTAL_ISSUES_COL].values[0]}")
     st.write(f"**Chronische Erkrankungen:** {current_data[CHRONICAL_DISEASES_COL].values[0]}")
     st.write(f"**Regelmäßige Medikamenteneinnahme:** {current_data[MEDICATION_COL].values[0]}")
+    st.write(f"**Tetanus Impfung:** {convert_bool_to_text(current_data[TETANUS_IMPFUNG_COL].values[0])}")
+    st.write(f"**Zecken Impfung:** {convert_bool_to_text(current_data[ZECKENIMPFUNG_COL].values[0])}")
+
+    st.markdown("#### Busfahrt")
+    st.write(f"**Mit Busfahrt:** {convert_bool_to_text(current_data[BUS_COL].values[0])}")
+    st.write(f"**Mit Buszustieg in Münster:** {convert_bool_to_text(current_data[BUS_MUENSTER_COL].values[0])}")
+
+    st.markdown("#### Anmerkungen")
     st.write(f"**Zimmerwunsch:** {current_data[ZIMMERWUNSCH_COL].values[0]}")
     st.write(f"**Kommentar:** {current_data[COMMENT_COL].values[0]}")
-    st.write(f"**Tetanus Impfung:** {current_data[TETANUS_IMPFUNG_COL].values[0]}")
-    st.write(f"**Zecken Impfung:** {current_data[ZECKENIMPFUNG_COL].values[0]}")
-    st.write(f"**Darf schwimmen gehen:** {current_data[SWIM_CONFIRM_COL].values[0]}")
-    st.write(f"**Darf das Gelände verlassen:** {current_data[LEAVE_CONFIRM_COL].values[0]}")
-    st.write(f"**Mit Busfahrt:** {current_data[BUS_COL].values[0]}")
-    st.write(f"**Mit Buszustieg in Münster:** {current_data[BUS_MUENSTER_COL].values[0]}")
 
     with st.form("Anmeldung bestätigen"):
         confirmed = st.checkbox(f"Teilnahme für {current_name} bestätigt", current_data[CONFIRMED_COL].values[0])
@@ -236,8 +375,21 @@ def confirm_signup(primary=0):
             connection.commit()
             st.write(f"{update_cursor.rowcount} Datensatz aktualisiert")
 
+    if st.button(f"Anmeldung von {current_name} löschen"):
+        delete_person(current_id)
+
+    if st.button("Daten bearbeiten"):
+        if "Bearbeiten" in views:
+            single_edit(current_id)
+        else:
+            st.write("Du besitzt nicht die Rechte zum bearbeiten")
+
 def single_edit(primary=0):
-    current_id = st.sidebar.selectbox("Namen auswählen", data_total[KEY_COL], format_func=render_name, index=primary)
+    if primary == 0:
+        st.sidebar.markdown("---")
+        current_id = st.sidebar.selectbox("Namen auswählen", data_total[KEY_COL], format_func=render_name, index=primary)
+    else:
+        current_id = primary
     current_data = data_total[data_total[KEY_COL]==current_id]
 
     try:
@@ -254,7 +406,7 @@ def single_edit(primary=0):
         parent_first_name = st.text_input("Vorname des Erziehungsberechtigten", current_data[PARENT_FIRST_NAME_COL].values[0])
         parent_last_name = st.text_input("Nachname des Erziehungsberechtigten", current_data[PARENT_LAST_NAME_COL].values[0])
         email = st.text_input("E-Mail", current_data[EMAIL_COL].values[0])
-        phone = st.text_input("Nachname", current_data[PHONE_COL].values[0])
+        phone = st.text_input("Telefonnummer", current_data[PHONE_COL].values[0])
         parent_email = st.text_input("E-Mail Eltern", current_data[PARENT_EMAIL_COL].values[0])
         parent_phone = st.text_input("Telefon Eltern", current_data[PARENT_PHONE_COL].values[0])
         address = st.text_input("Adresse", current_data[ADDRESS_COL].values[0])
@@ -301,11 +453,7 @@ def single_edit(primary=0):
             st.write(f"{update_cursor.rowcount} Datensatz aktualisiert")
 
     if st.button("Löschen"):
-        delete_query = f"UPDATE Anmeldung SET {DELETED_COL}=1 WHERE id={current_id}"
-        delete_cursor = connection.cursor()
-        delete_cursor.execute(delete_query)
-        connection.commit()
-        st.write(f"{delete_cursor.rowcount} Datensatz gelöscht")
+        delete_person(current_id)
 
 def rechnung_view(primary=0):
     st.sidebar.markdown("---")
@@ -341,10 +489,7 @@ def rechnung_view(primary=0):
 
             _, freizeitkosten, _, discount, discount_code = calc_kosten(current_data)
 
-            if int(current_data[BUS_COL].values[0])==1:
-                busfahrt = True
-            else:
-                busfahrt = False
+            busfahrt = int(current_data[BUS_COL].values[0])==1
 
             data_invoice = {
                 "current_id": current_id,
@@ -399,7 +544,8 @@ def buchhaltung_view():
                 else:
                     buchhaltung_cursor = connection.cursor()
                     current_balance = current_data[BALANCE_COL]
-                    new_balance = current_balance.values[0] + betrag
+                    # new_balance = current_balance.values[0] + betrag # uncomment to activate adding
+                    new_balance = betrag
                     buchhaltung_query = f"UPDATE Anmeldung SET {BALANCE_COL}={new_balance} WHERE id={current_id}"
 
                     buchhaltung_cursor.execute(buchhaltung_query)
@@ -440,12 +586,20 @@ def finanzen_view():
     finanz_data_sum = pd.DataFrame({
         "Summe Kosten": babel.numbers.format_currency(finanz_data_raw["Kosten"].sum(), "EUR", locale="de_DE"),
         "Summe Überwiesen": babel.numbers.format_currency(finanz_data_raw["Überwiesen"].sum(), "EUR", locale="de_DE"),
-        "Summe Ausstehend": babel.numbers.format_currency(finanz_data_raw["Ausstehend"].sum(), "EUR", locale="de_DE"),
-        "Anzahl MA": finanz_data_raw["MA"].sum() + finanz_data_raw["Ext"].sum() ,
-        "Anzahl Küche": finanz_data_raw["Küche"].sum(),
+        "Summe Ausstehend": babel.numbers.format_currency(finanz_data_raw["Ausstehend"].sum(), "EUR", locale="de_DE")
     }, index=[0])
 
     st.write(finanz_data_sum)
+
+    st.markdown("### Leute, die zu viel bezahlt haben:")
+    selected_data = data_total[(data_total[DATE_INVOICE_COL].isna() == False) & (data_total[CONFIRMED_COL]==1) & (data_total.apply(calc_balance, axis=1) < 0)]
+    if len(selected_data) == 0:
+        st.write("Keiner")
+    else:
+        for _, current_data in selected_data.iterrows():
+            balance = calc_balance(current_data)
+            current_name = f"{current_data[FIRST_NAME_COL]} {current_data[LAST_NAME_COL]} ({current_data[KEY_COL]})"
+            st.write(f"{current_name} mit {render_money(balance)}")
 
 def need_for_login_view():
     st.write("Anmeldung")
@@ -457,7 +611,37 @@ def need_for_login_view():
             if st.session_state["privileges"] != 0:
                 st.experimental_rerun()
 
+def zahlungserinnuerung_view():
+    st.markdown("### Zahlungserinnerung")
+    selected_data = data_total[(data_total[DATE_INVOICE_COL].isna() == False) & (data_total[CONFIRMED_COL]==1) & (data_total.apply(calc_balance, axis=1) > 0)]
+    # st.dataframe(selected_data)
 
+    st.markdown("### Einzeln")
+    for current_row, current_data in selected_data.iterrows():
+        current_balance = calc_balance(current_data)
+        current_id = current_data[KEY_COL]
+        with st.form(f"{current_row}"):
+            current_name = f"{current_data[FIRST_NAME_COL]} {current_data[LAST_NAME_COL]}"
+            st.write(f"{current_name} ({current_data[KEY_COL]}) noch {render_money(current_balance)}")
+            if st.form_submit_button(f"Zahlungserinnerung für {current_name} senden"):
+                send_zahlungserinnerung(current_data, current_id, current_name)
+
+    st.markdown("#### Alle Senden")
+    with st.form("send_all_zahlungserinnerung"):
+        if st.form_submit_button("Zahlungserinnerung an alle senden"):
+            for current_row, current_data in selected_data.iterrows():
+                current_balance = calc_balance(current_data)
+                current_id = current_data[KEY_COL]
+                current_name = f"{current_data[FIRST_NAME_COL]} {current_data[LAST_NAME_COL]}"
+                send_zahlungserinnerung(current_data, current_id, current_name)
+
+def header_info():
+    count_waiting_for_confirm = len(data_total[data_total[CONFIRMED_COL]==0])
+    count_waiting_for_invoice = len(data_total[data_total[DATE_INVOICE_COL].isna() & (data_total[CONFIRMED_COL]==1)])
+    if count_waiting_for_invoice + count_waiting_for_confirm > 0:
+        st.warning(f"Es warten noch {count_waiting_for_confirm} Teilnehmer auf Bestätigung und {count_waiting_for_invoice} Teilnehmer auf das zusenden der Rechnung", icon="📋")
+    else:
+        st.warning("Super! Alles du hast keine offenen Anmeldungen", icon="🥳")
 
 st.markdown("# JF 2023 Dashboard")
 
@@ -474,12 +658,13 @@ if  "privileges" not in st.session_state:
 
 if st.session_state["privileges"] == 1:
     data_total = pd.read_sql(get_all_query, connection)
-
+    header_info()
     views = {
         "Übersicht": all_view,
         "Teilnahme bestätigen": confirm_signup,
         "Bearbeiten": single_edit,
         "Rechnungen": rechnung_view,
+        "Zahlungserinnerung": zahlungserinnuerung_view,
         "Buchhaltung": buchhaltung_view,
         "Finanzübersicht": finanzen_view,
     }
