@@ -9,7 +9,7 @@ import babel.numbers
 import invoice_creator
 import officeHelper
 
-MONEY_EARLY = 358
+MONEY_EARLY = 348
 MONEY_LATE = 398
 MONEY_BUS = 0
 MONEY_SIBLING = -30
@@ -368,8 +368,12 @@ def confirm_signup(primary=0):
 
     with st.form("Anmeldung bestätigen"):
         confirmed = st.checkbox(f"Teilnahme für {current_name} bestätigt", current_data[CONFIRMED_COL].values[0])
+        externe_mitarbeiter = st.checkbox(f"Externer Mitarbeiter", current_data[EXTERNAL_STAFF_COL].values[0])
+        mitarbeiter = st.checkbox(f"Mitarbeiter", current_data[STAFF_COL].values[0])
+        kuechenteam = st.checkbox(f"Küchenteam", current_data[KITCHEN_TEAM_COL].values[0])
+        kostenlos = st.checkbox(f"Kostenlos", current_data[SPONSORED_COL].values[0])
         if st.form_submit_button("Absenden"):
-            update_query = f"UPDATE Anmeldung SET {CONFIRMED_COL}={confirmed} WHERE `id`={current_id}"
+            update_query = f"UPDATE Anmeldung SET {CONFIRMED_COL}={confirmed}, {MITARBEITER_COL}={mitarbeiter}, {EXTERNAL_STAFF_COL}={externe_mitarbeiter}, {KITCHEN_TEAM_COL}={kuechenteam}, {SPONSORED_COL}={kostenlos} WHERE `id`={current_id}"
             update_cursor = connection.cursor()
             update_cursor.execute(update_query)
             connection.commit()
