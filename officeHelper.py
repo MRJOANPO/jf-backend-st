@@ -78,7 +78,7 @@ def set_access_token():
     except KeyError:
         st.session_state["access_token"] = ""
 
-def send_email_rechnung(email_recipient, name, invoice_pdf, is_parent:bool):
+def send_email_rechnung(email_recipient, name, invoice_pdf, is_parent:bool, invoice_number:int):
     if is_parent:
         html_content = f"""
         <p>Hallo {name}, </p>
@@ -105,19 +105,19 @@ def send_email_rechnung(email_recipient, name, invoice_pdf, is_parent:bool):
         """
 
     attachments = [invoice_pdf, draft_agb_attachment()]
-    subject = "Jugendfreizeit 2023 | Rechnung"
+    subject = f"Jugendfreizeit 2023 | Rechnung #{invoice_number:03}"
 
-    return send_email(html_content, subject, email_recipient, attachments)
+    return send_email(html_content, subject, email_recipient, attachments, bbc_email_recipient="rechnung-ccs@cc-siegen.de")
 
 def send_zahlungserinnerung(email_recipient, name, invoice_pdf, is_parent:bool, betrag_eingang, betrag_ausstehend, betrag_gesamt):
     if is_parent:
         html_content = f"""
         <p>Hallo {name}, </p>
-        <p>Wir wollten dich nur noch mal kurz dran erinnern, dass der
+        <p>wir wollten dich nur noch mal kurz dran erinnern, dass der
         Zahlungsbeitrag für die Jugendfreizeit für dein Kind ansteht.
         Von den {betrag_ausstehend} haben wir {betrag_eingang} erhalten.
         Bitte überweise also noch die restlichen {betrag_ausstehend}.
-        Wir haben unten noch mal die ursprüngliche Rechnung für den Gesamtbetrag angehängt.</p>
+        Wir haben noch mal die ursprüngliche Rechnung für den Gesamtbetrag angehängt.</p>
         <p>Solltest du Fragen haben oder irgendetwas unklar sein, schreib uns einfach eine
         E-Mail unter jugendfreizeit@rocksolidsiegen.de oder antworte auf diese E-Mail.
         <p>Gottes Segen,<br>
@@ -128,11 +128,11 @@ def send_zahlungserinnerung(email_recipient, name, invoice_pdf, is_parent:bool, 
     else:
         html_content = f"""
         <p>Hallo {name}, </p>
-        <p>Wir wollten dich nur noch mal kurz dran erinnern, dass dein
+        <p>wir wollten dich nur noch mal kurz dran erinnern, dass dein
         Zahlungsbeitrag für die Jugendfreizeit ansteht.
         Von den {betrag_ausstehend} haben wir {betrag_eingang} erhalten.
         Bitte überweise also noch die restlichen {betrag_ausstehend}.
-        Wir haben unten noch mal die ursprüngliche Rechnung für den Gesamtbetrag angehängt.</p>
+        Wir haben noch mal die ursprüngliche Rechnung für den Gesamtbetrag angehängt.</p>
         <p>Solltest du Fragen haben oder irgendetwas unklar sein, schreib uns einfach eine
         E-Mail unter jugendfreizeit@rocksolidsiegen.de oder antworte auf diese E-Mail.
         <p>Gottes Segen,<br>
@@ -146,7 +146,7 @@ def send_zahlungserinnerung(email_recipient, name, invoice_pdf, is_parent:bool, 
 
     return send_email(html_content, subject, email_recipient, attachments)
 
-def send_email(body:str, subject:str, email_recipient: str, attachments:list):
+def send_email(body:str, subject:str, email_recipient: str, attachments:list, bbc_email_recipient = ""):
     try:
         st.session_state["access_token"]
     except KeyError:
@@ -186,6 +186,14 @@ def send_email(body:str, subject:str, email_recipient: str, attachments:list):
         }
     }
 
+    if bbc_email_recipient != "":
+        data["message"]["bccRecipients"] = [
+                    {
+                        "emailAddress": {
+                            "address": f"{bbc_email_recipient}"
+                        }
+                    }
+                ]
     response = requests.post(EMAIL_URL, headers=header, json=data, timeout=1000)
     if not response:
         st.write(response.text)

@@ -278,11 +278,11 @@ def all_view():
 
         st.markdown("### Mitarbeiter und Teilnehmer")
         count_ma = len(data_total[data_total[STAFF_COL]==1])
-        count_ext_ma = len(data_total[data_total[STAFF_COL]==1])
-        count_kitchen = len(data_total[data_total[STAFF_COL]==1])
+        count_ext_ma = len(data_total[data_total[EXTERNAL_STAFF_COL]==1])
+        count_kitchen = len(data_total[data_total[KITCHEN_TEAM_COL]==1])
         count_teilnehmer = len(data_total) - count_ma - count_ext_ma - count_kitchen
         data_aufteilung = pd.DataFrame(
-            {"Aufteilung": [count_teilnehmer, count_ma, count_ext_ma, count_ext_ma]},
+            {"Aufteilung": [count_teilnehmer, count_ma, count_ext_ma, count_kitchen]},
             index=["Teilnehmer", "Mitarbeiter", "Externe Mitarbeiter", "Küchenteam"]
         )
         st.bar_chart(data_aufteilung)
@@ -372,19 +372,20 @@ def confirm_signup(primary=0):
         mitarbeiter = st.checkbox(f"Mitarbeiter", current_data[STAFF_COL].values[0])
         kuechenteam = st.checkbox(f"Küchenteam", current_data[KITCHEN_TEAM_COL].values[0])
         kostenlos = st.checkbox(f"Kostenlos", current_data[SPONSORED_COL].values[0])
+        geschwister = st.checkbox(f"Geschwisterkind", current_data[SIBLING_COL].values[0])
         if st.form_submit_button("Absenden"):
-            update_query = f"UPDATE Anmeldung SET {CONFIRMED_COL}={confirmed}, {MITARBEITER_COL}={mitarbeiter}, {EXTERNAL_STAFF_COL}={externe_mitarbeiter}, {KITCHEN_TEAM_COL}={kuechenteam}, {SPONSORED_COL}={kostenlos} WHERE `id`={current_id}"
-            update_cursor = connection.cursor()
-            update_cursor.execute(update_query)
+            confirm_query = f"UPDATE Anmeldung SET {CONFIRMED_COL}={confirmed}, {MITARBEITER_COL}={mitarbeiter}, {EXTERNAL_STAFF_COL}={externe_mitarbeiter}, {KITCHEN_TEAM_COL}={kuechenteam}, {SPONSORED_COL}={kostenlos}, {SIBLING_COL}={geschwister} WHERE `id`={current_id}"
+            confirm_cursor = connection.cursor()
+            confirm_cursor.execute(confirm_query)
             connection.commit()
-            st.write(f"{update_cursor.rowcount} Datensatz aktualisiert")
+            st.write(f"{confirm_cursor.rowcount} Datensatz aktualisiert")
 
     if st.button(f"Anmeldung von {current_name} löschen"):
         delete_person(current_id)
 
-    if st.button("Daten bearbeiten"):
-        if "Bearbeiten" in views:
-            single_edit(current_id)
+    if st.button(f"Rechnung für {current_name} versenden"):
+        if "Rechnungen" in views:
+            send_invoice(current_id, current_data, current_name)
         else:
             st.write("Du besitzt nicht die Rechte zum bearbeiten")
 
@@ -448,8 +449,7 @@ def single_edit(primary=0):
         kitchen = st.checkbox("Küchenteam", current_data[KITCHEN_TEAM_COL].values[0])
         confirmed = st.checkbox("Teilnahme bestätigt", current_data[CONFIRMED_COL].values[0])
 
-        submit = st.form_submit_button()
-        if submit:
+        if st.form_submit_button("Bearbeiten"):
             update_query = f"UPDATE Anmeldung SET {FIRST_NAME_COL}='{first_name}', {LAST_NAME_COL}='{last_name}',{FORM_FOR_CHILD_COL}={form_for_child},{PARENT_FIRST_NAME_COL}='{parent_first_name}',{PARENT_LAST_NAME_COL}='{parent_last_name}',{PHONE_COL}='{phone}',{EMAIL_COL}='{email}',{PARENT_EMAIL_COL}='{parent_email}',{PARENT_PHONE_COL}='{parent_phone}',{ADDRESS_COL}='{address}',{ZIP_COL}={plz},{CITY_COL}='{city}',{COUNTRY_COL}='{country}',{GENDER_COL}='{gender}',{T_SHIRT_COL}='{t_shirt_size.lower()}',{BIRTHDAY_COL}='{birthday}',{DOCTOR_NAME_COL}='{doctor_name}',{DOCTOR_PHONE_COL}='{doctor_phone}',{EMERGENCY_CONTACT_1_NAME_COL}='{emergency_contact_1_name}',{EMERGENCY_CONTACT_1_PHONE_COL}='{emergency_contact_1_phone}',{EMERGENCY_CONTACT_2_NAME_COL}='{emergency_contact_2_name}',{EMERGENCY_CONTACT_2_PHONE_COL}='{emergency_contact_2_phone}',{ALLERGIES_COL}='{allergies}',{MENTAL_ISSUES_COL}='{mental_issues}',{CHRONICAL_DISEASES_COL}='{chronical_diseases}',{MEDICATION_COL}='{medication}',{ZIMMERWUNSCH_COL}='{zimmerwunsch}',{COMMENT_COL}='{comment}',{TETANUS_IMPFUNG_COL}={tetanus},{ZECKENIMPFUNG_COL}={zecken},{BUS_COL}={bus},{BUS_MUENSTER_COL}={bus_muenster},{SPONSORED_COL}={sponsored},{BALANCE_COL}={balance},{STAFF_COL}={staff},{CONFIRMED_COL}={confirmed},{EXTRA_DISCOUNT_COL}={support},{SWIM_CONFIRM_COL}={swim_confirm},{KITCHEN_TEAM_COL}={kitchen},{EXTERNAL_STAFF_COL}={external_staff},{LEAVE_CONFIRM_COL}={leave_confirm},{SIBLING_COL}={sibling_coming} WHERE {KEY_COL} = {current_id}"
             update_cursor = connection.cursor()
             update_cursor.execute(update_query)
@@ -480,22 +480,25 @@ def rechnung_view(primary=0):
     st.markdown(f"### Rechnung von {current_name} ({current_id})")
 
     if st.button(f"Rechnung für {current_name} erstellen und versenden"):
-        if current_data[CONFIRMED_COL].values[0] == 1:
-            if current_data[FORM_FOR_CHILD_COL].values[0]:
+        send_invoice(current_id, current_data, current_name)
+
+def send_invoice(current_id, current_data, current_name):
+    if current_data[CONFIRMED_COL].values[0] == 1:
+        if current_data[FORM_FOR_CHILD_COL].values[0]:
                 # Invoice at Parent
-                invoice_name = current_data[PARENT_FIRST_NAME_COL].values[0] + " " + current_data[PARENT_LAST_NAME_COL].values[0]
-                email_main = current_data[PARENT_EMAIL_COL].values[0]
-                is_parent = True
-            else:
-                invoice_name = current_name
-                email_main = current_data[EMAIL_COL].values[0]
-                is_parent = False
+            invoice_name = current_data[PARENT_FIRST_NAME_COL].values[0] + " " + current_data[PARENT_LAST_NAME_COL].values[0]
+            email_main = current_data[PARENT_EMAIL_COL].values[0]
+            is_parent = True
+        else:
+            invoice_name = current_name
+            email_main = current_data[EMAIL_COL].values[0]
+            is_parent = False
 
-            _, freizeitkosten, _, discount, discount_code = calc_kosten(current_data)
+        _, freizeitkosten, _, discount, discount_code = calc_kosten(current_data)
 
-            busfahrt = int(current_data[BUS_COL].values[0])==1
+        busfahrt = int(current_data[BUS_COL].values[0])==1
 
-            data_invoice = {
+        data_invoice = {
                 "current_id": current_id,
                 "invoice_name": invoice_name,
                 "name_teilnehmer": current_name,
@@ -509,20 +512,20 @@ def rechnung_view(primary=0):
                 "discount": -discount,
                 "discount_code": discount_code
             }
-            file_name_pdf = f"JF2023-{current_id:03}.pdf"
-            pdf = invoice_creator.create_pdf(**data_invoice)
-            pdf_bytes = pdf.output(file_name_pdf, "S").encode('latin-1')
-            pdf_attachment = officeHelper.draft_attachment(file_name_pdf, pdf_bytes)
+        file_name_pdf = f"JF2023-{current_id:03}.pdf"
+        pdf = invoice_creator.create_pdf(**data_invoice)
+        pdf_bytes = pdf.output(file_name_pdf, "S").encode('latin-1')
+        pdf_attachment = officeHelper.draft_attachment(file_name_pdf, pdf_bytes)
 
-            if officeHelper.send_email_rechnung(email_main, invoice_name, pdf_attachment, is_parent):
-                st.write("Rechnung wurde per E-Mail versandt")
-                update_invoice_cursor = connection.cursor()
-                update_invoice_query = f"UPDATE Anmeldung SET {DATE_INVOICE_COL}='{datetime.datetime.now()}' WHERE {KEY_COL} = {current_id}"
-                update_invoice_cursor.execute(update_invoice_query)
-                connection.commit()
-                st.write(f"{update_invoice_cursor.rowcount} Datensatz aktualisiert")
-        else:
-            st.write("Rechnung konnte nicht ausgestellt werden, da Teilnehmer nicht bestätigt")
+        if officeHelper.send_email_rechnung(email_main, invoice_name, pdf_attachment, is_parent, current_id):
+            st.write("Rechnung wurde per E-Mail versandt")
+            update_invoice_cursor = connection.cursor()
+            update_invoice_query = f"UPDATE Anmeldung SET {DATE_INVOICE_COL}='{datetime.datetime.now()}' WHERE {KEY_COL} = {current_id}"
+            update_invoice_cursor.execute(update_invoice_query)
+            connection.commit()
+            st.write(f"{update_invoice_cursor.rowcount} Datensatz aktualisiert")
+    else:
+        st.write("Rechnung konnte nicht ausgestellt werden, da Teilnehmer nicht bestätigt")
 
 def buchhaltung_view():
     st.markdown("### Buchhaltung Upload")
@@ -645,7 +648,7 @@ def header_info():
     if count_waiting_for_invoice + count_waiting_for_confirm > 0:
         st.warning(f"Es warten noch {count_waiting_for_confirm} Teilnehmer auf Bestätigung und {count_waiting_for_invoice} Teilnehmer auf das zusenden der Rechnung", icon="📋")
     else:
-        st.warning("Super! Alles du hast keine offenen Anmeldungen", icon="🥳")
+        st.success("Super! Alles du hast keine offenen Anmeldungen", icon="🥳")
 
 st.markdown("# JF 2023 Dashboard")
 
