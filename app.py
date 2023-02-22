@@ -157,7 +157,7 @@ def privileges_checker(username:str, password:str) -> int:
         st.write("Falscher Benutzer oder falsches Passwort")
     return 0
 
-@st.experimental_memo
+@st.cache_data
 def convert_dataframe(df: pd.DataFrame):
     return df.to_csv(
         index=False,
