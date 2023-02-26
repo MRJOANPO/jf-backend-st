@@ -286,9 +286,17 @@ def all_view():
         t_shirt_data.rename("T-Shirt Größen", inplace=True)
         st.bar_chart(t_shirt_data)
 
-        st.markdown("### Geschlecht")
-        gender_data = data_total.groupby(GENDER_COL)[KEY_COL].count()
-        gender_data.rename("Geschlecht", inplace=True)
+        st.markdown("### Geschlecht in %")
+        staff_only_data = data_total[(data_total[STAFF_COL]==1) | (data_total[EXTERNAL_STAFF_COL]==1) | (data_total[KITCHEN_TEAM_COL])==1]
+        teilnehmer_only_data = data_total[(data_total[STAFF_COL]==0) & (data_total[EXTERNAL_STAFF_COL]==0) & (data_total[KITCHEN_TEAM_COL])==0]
+        gender_data_staff = staff_only_data.groupby(GENDER_COL)[KEY_COL].count()/staff_only_data.shape[0]*100
+        gender_data_teilnehmer = teilnehmer_only_data.groupby(GENDER_COL)[KEY_COL].count()/teilnehmer_only_data.shape[0]*100
+
+        gender_data_staff.rename("Mitarbeiter", inplace=True)
+        gender_data_teilnehmer.rename("Teilnehmer", inplace=True)
+
+        gender_data = pd.DataFrame([gender_data_teilnehmer, gender_data_staff])
+        gender_data.rename(columns={"m":"Männlich", "w":"Weiblich"}, inplace=True)
         st.bar_chart(gender_data)
 
         st.markdown("### Mitarbeiter und Teilnehmer")
