@@ -246,6 +246,21 @@ def send_zahlungserinnerung(current_data, current_id, current_name):
     else:
         st.write("Rechnung konnte nicht ausgestellt werden, da Teilnehmer nicht bestätigt")
 
+def get_first_emergency_contact(current_data):
+    if current_data[FORM_FOR_CHILD_COL] == 1:
+        # Return Erziehungsberechtigter
+        return current_data[PARENT_FIRST_NAME_COL] + " " + current_data[PARENT_LAST_NAME_COL] + " (" + current_data[PARENT_PHONE_COL] + ")"
+
+    return current_data[EMERGENCY_CONTACT_1_NAME_COL] + " (" + current_data[EMERGENCY_CONTACT_1_PHONE_COL] + ")"
+
+def get_second_emergency_contact(current_data):
+    if current_data[FORM_FOR_CHILD_COL] == 1:
+        # Return Erziehungsberechtigter
+        return current_data[EMERGENCY_CONTACT_1_NAME_COL] + " (" + current_data[EMERGENCY_CONTACT_1_PHONE_COL] + ")"
+
+    return current_data[EMERGENCY_CONTACT_2_NAME_COL] + " (" + current_data[EMERGENCY_CONTACT_2_PHONE_COL] + ")"
+
+
 ############### Views ###############
 def all_view():
 
@@ -642,6 +657,35 @@ def zahlungserinnuerung_view():
                 current_name = f"{current_data[FIRST_NAME_COL]} {current_data[LAST_NAME_COL]}"
                 send_zahlungserinnerung(current_data, current_id, current_name)
 
+def medical_view():
+    confirmed_people = data_total[data_total[CONFIRMED_COL]==1]
+
+    medical_data = pd.DataFrame({
+        "Vorname": confirmed_people[FIRST_NAME_COL],
+        "Nachname": confirmed_people[LAST_NAME_COL],
+        "Alter": confirmed_people[BIRTHDAY_COL].apply(calc_age),
+        "Geschlecht": confirmed_people[GENDER_COL],
+        "Arzt": confirmed_people[DOCTOR_NAME_COL] + " (" + confirmed_people[DOCTOR_PHONE_COL] + ")",
+        "Notfallkontakt 1": confirmed_people.apply(get_first_emergency_contact, axis=1),
+        "Notfallkontakt 2": confirmed_people.apply(get_second_emergency_contact, axis=1),
+        "Allergien": confirmed_people[ALLERGIES_COL],
+        "Geistige oder soziale Beeinträchtigungen": confirmed_people[MENTAL_ISSUES_COL],
+        "Chronische Erkrankungen": confirmed_people[CHRONICAL_DISEASES_COL],
+        "Regelmäßige Medikamenteneinnahme": confirmed_people[MEDICATION_COL],
+        "Tetanus Impfung": confirmed_people[TETANUS_IMPFUNG_COL] == 1,
+        "Zecken Impfung": confirmed_people[ZECKENIMPFUNG_COL] == 1,
+    })
+
+    st.dataframe(medical_data, height=medical_data.shape[0]*36)
+    csv = convert_dataframe(medical_data)
+    st.download_button(
+        "Alle medizinischen Daten herunterladen",
+        csv,
+        f"JF-MedicalData{datetime.datetime.now().strftime('%Y%m%d')}.csv",
+        "text/csv"
+    )
+
+
 def header_info():
     count_waiting_for_confirm = len(data_total[data_total[CONFIRMED_COL]==0])
     count_waiting_for_invoice = len(data_total[data_total[DATE_INVOICE_COL].isna() & (data_total[CONFIRMED_COL]==1)])
@@ -674,6 +718,7 @@ if st.session_state["privileges"] == 1:
         "Zahlungserinnerung": zahlungserinnuerung_view,
         "Buchhaltung": buchhaltung_view,
         "Finanzübersicht": finanzen_view,
+        "Medizinische Daten": medical_view
     }
 elif st.session_state["privileges"] == 2:
     data_total = pd.read_sql(get_all_query, connection)
@@ -681,6 +726,11 @@ elif st.session_state["privileges"] == 2:
         "Übersicht": all_view,
         "Buchhaltung": buchhaltung_view,
         "Finanzübersicht": finanzen_view,
+    }
+elif st.session_state["privileges"] == 3:
+    data_total = pd.read_sql(get_all_query, connection)
+    views = {
+        "Medizinische Daten": medical_view
     }
 else:
     views = {
