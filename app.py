@@ -685,6 +685,25 @@ def medical_view():
         "text/csv"
     )
 
+def kitchen_view():
+    confirmed_people = data_total[data_total[CONFIRMED_COL]==1]
+
+    kitchen_data = pd.DataFrame({
+        "Vorname": confirmed_people[FIRST_NAME_COL],
+        "Nachname": confirmed_people[LAST_NAME_COL],
+        "Alter": confirmed_people[BIRTHDAY_COL].apply(calc_age),
+        "Geschlecht": confirmed_people[GENDER_COL],
+        "Allergien": confirmed_people[ALLERGIES_COL]
+    })
+
+    st.dataframe(kitchen_data, height=kitchen_data.shape[0]*36)
+    csv = convert_dataframe(kitchen_data)
+    st.download_button(
+        "Alle medizinischen Daten herunterladen",
+        csv,
+        f"JF-MedicalData{datetime.datetime.now().strftime('%Y%m%d')}.csv",
+        "text/csv"
+    )
 
 def header_info():
     count_waiting_for_confirm = len(data_total[data_total[CONFIRMED_COL]==0])
@@ -718,7 +737,8 @@ if st.session_state["privileges"] == 1:
         "Zahlungserinnerung": zahlungserinnuerung_view,
         "Buchhaltung": buchhaltung_view,
         "Finanzübersicht": finanzen_view,
-        "Medizinische Daten": medical_view
+        "Medizinische Daten": medical_view,
+        "Küche Daten":kitchen_view
     }
 elif st.session_state["privileges"] == 2:
     data_total = pd.read_sql(get_all_query, connection)
@@ -731,6 +751,11 @@ elif st.session_state["privileges"] == 3:
     data_total = pd.read_sql(get_all_query, connection)
     views = {
         "Medizinische Daten": medical_view
+    }
+elif st.session_state["privileges"] == 4:
+    data_total = pd.read_sql(get_all_query, connection)
+    views = {
+        "Küche Daten": medical_view
     }
 else:
     views = {
