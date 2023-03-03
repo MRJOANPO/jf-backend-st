@@ -86,7 +86,7 @@ class Invoice_PDF(FPDF):
         self.ln(10)
 
         # Datum der Freizeit
-        self.set_font("Brandon", "B", self.font_size_p)
+        self.set_font("Brandon", "N", self.font_size_p)
         height = self.calc_height_in_mm()
         self.cell(0, height, "Die Jugendfreizeit findet vom 21. – 29. Juli 2023 statt", 0, 2)
         self.ln(20)
