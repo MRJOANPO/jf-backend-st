@@ -684,7 +684,7 @@ def medical_view():
         "Zecken Impfung": confirmed_people[ZECKENIMPFUNG_COL] == 1,
     })
 
-    st.dataframe(medical_data, height=medical_data.shape[0]*36)
+    st.dataframe(medical_data, height=(medical_data.shape[0]+1)*36)
     csv = convert_dataframe(medical_data)
     st.download_button(
         "Alle medizinischen Daten herunterladen",
@@ -704,7 +704,7 @@ def kitchen_view():
         "Allergien": kitchen_people[ALLERGIES_COL]
     })
 
-    st.dataframe(kitchen_data, height=kitchen_data.shape[0]*36)
+    st.dataframe(kitchen_data, height=(kitchen_data.shape[0] + 1)*35) # +1 for headline
     csv = convert_dataframe(kitchen_data)
     st.download_button(
         "Alle medizinischen Daten herunterladen",
