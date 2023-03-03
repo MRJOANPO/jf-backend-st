@@ -694,14 +694,14 @@ def medical_view():
     )
 
 def kitchen_view():
-    confirmed_people = data_total[data_total[CONFIRMED_COL]==1]
+    kitchen_people = data_total[data_total[CONFIRMED_COL]==1 & data_total[ALLERGIES_COL] != ""]
 
     kitchen_data = pd.DataFrame({
-        "Vorname": confirmed_people[FIRST_NAME_COL],
-        "Nachname": confirmed_people[LAST_NAME_COL],
-        "Alter": confirmed_people[BIRTHDAY_COL].apply(calc_age),
-        "Geschlecht": confirmed_people[GENDER_COL],
-        "Allergien": confirmed_people[ALLERGIES_COL]
+        "Vorname": kitchen_people[FIRST_NAME_COL],
+        "Nachname": kitchen_people[LAST_NAME_COL],
+        "Alter": kitchen_people[BIRTHDAY_COL].apply(calc_age),
+        "Geschlecht": kitchen_people[GENDER_COL],
+        "Allergien": kitchen_people[ALLERGIES_COL]
     })
 
     st.dataframe(kitchen_data, height=kitchen_data.shape[0]*36)
