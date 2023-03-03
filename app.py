@@ -694,7 +694,7 @@ def medical_view():
     )
 
 def kitchen_view():
-    kitchen_people = data_total[data_total[CONFIRMED_COL]==1 & data_total[ALLERGIES_COL] != ""]
+    kitchen_people = data_total[(data_total[CONFIRMED_COL]==1) & (data_total[ALLERGIES_COL] != "")]
 
     kitchen_data = pd.DataFrame({
         "Vorname": kitchen_people[FIRST_NAME_COL],
