@@ -566,9 +566,8 @@ def buchhaltung_view():
             for i in range(len(relevant_data)):
                 verwendungszweck = relevant_data.iloc[i,8]
                 betrag = relevant_data.iloc[i,11]
-                current_id = int(re.findall(r"JF2023-(\d\d\d)", verwendungszweck)[0])
+                current_id = int(re.findall(r"JF2023-(\d\d\d)", verwendungszweck, flags=re.IGNORECASE)[0])
                 current_data = data_total[data_total[KEY_COL]==current_id]
-
                 if len(current_data) == 0:
                     st.markdown(f"Es konnte keine Person zu diesem Verwendungszweck zugeordnet werden: *{verwendungszweck}*")
                 else:
