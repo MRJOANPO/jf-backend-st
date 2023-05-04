@@ -116,8 +116,8 @@ def send_zahlungserinnerung(email_recipient, name, invoice_pdf, is_parent:bool, 
         <p>wir wollten dich nur noch mal kurz dran erinnern, dass der
         Zahlungsbeitrag für die Jugendfreizeit für dein Kind ansteht.
         Von den {betrag_ausstehend} haben wir {betrag_eingang} erhalten.
-        Bitte überweise also noch die restlichen {betrag_ausstehend}.
-        Wir haben noch mal die ursprüngliche Rechnung für den Gesamtbetrag angehängt.</p>
+        Bitte überweise also noch die restlichen {betrag_ausstehend} bis zum 15.05.2023.
+        Die Zahlungsinformationen findest du in der Rechnung anbei.</p>
         <p>Solltest du Fragen haben oder irgendetwas unklar sein, schreib uns einfach eine
         E-Mail unter jugendfreizeit@rocksolidsiegen.de oder antworte auf diese E-Mail.
         <p>Gottes Segen,<br>
@@ -131,8 +131,8 @@ def send_zahlungserinnerung(email_recipient, name, invoice_pdf, is_parent:bool, 
         <p>wir wollten dich nur noch mal kurz dran erinnern, dass dein
         Zahlungsbeitrag für die Jugendfreizeit ansteht.
         Von den {betrag_ausstehend} haben wir {betrag_eingang} erhalten.
-        Bitte überweise also noch die restlichen {betrag_ausstehend}.
-        Wir haben noch mal die ursprüngliche Rechnung für den Gesamtbetrag angehängt.</p>
+        Bitte überweise also noch die restlichen {betrag_ausstehend} bis zum 15.05.2023.
+        Die Zahlungsinformationen findest du in der Rechnung anbei.</p>
         <p>Solltest du Fragen haben oder irgendetwas unklar sein, schreib uns einfach eine
         E-Mail unter jugendfreizeit@rocksolidsiegen.de oder antworte auf diese E-Mail.
         <p>Gottes Segen,<br>
@@ -142,7 +142,7 @@ def send_zahlungserinnerung(email_recipient, name, invoice_pdf, is_parent:bool, 
         """
 
     attachments = [invoice_pdf, draft_agb_attachment()]
-    subject = "Jugendfreizeit 2023 | Zahlungserinnerung"
+    subject = "Zahlungserinnerung | Jugendfreizeit 2023"
 
     return send_email(html_content, subject, email_recipient, attachments)
 
