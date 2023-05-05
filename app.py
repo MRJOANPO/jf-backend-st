@@ -2,12 +2,13 @@ import datetime
 import re
 
 import streamlit as st
+import streamlit.components.v1 as components
 import mysql.connector
 import pandas as pd
 import babel.numbers
-
 import invoice_creator
 import officeHelper
+import default_text
 
 MONEY_EARLY = 348
 MONEY_LATE = 398
@@ -260,6 +261,11 @@ def get_second_emergency_contact(current_data):
 
     return current_data[EMERGENCY_CONTACT_2_NAME_COL] + " (" + current_data[EMERGENCY_CONTACT_2_PHONE_COL] + ")"
 
+def update_all_infobrief_checkboxes():
+    keys = st.session_state
+    for key in keys:
+        if key.startswith("cb_infobrief_"):
+            st.session_state[key] = st.session_state.default_cb
 
 ############### Views ###############
 def all_view():
@@ -712,6 +718,48 @@ def kitchen_view():
         "text/csv"
     )
 
+def infobrief_view():
+    selected_data = data_total[data_total[CONFIRMED_COL]==1]
+
+    st.checkbox("Wert für alle", on_change=update_all_infobrief_checkboxes, key="default_cb")
+
+    with st.form("infobrief_send"):
+        subject = st.text_input("Betreff", value=default_text.Infobrief.subject)
+        html_content = st.text_area("HTML Email content", value=default_text.Infobrief.html, help="Vefügbare Platzhalter: {{name}}, {{subject}}")
+
+        for row in selected_data.iterrows():
+            current_id = row[1]["id"]
+            current_name = row[1]["first_name"] + " " + row[1]["last_name"] + f"({current_id})"
+            st.checkbox(current_name, key=f"cb_infobrief_{current_id:03}")
+
+        st.markdown("### Vorschau")
+        components.html(html_content, height=500, scrolling=True)
+
+        if st.form_submit_button("Abschicken an ausgewählte Teilnehmer"):
+            keys = st.session_state
+            for key in keys:
+                if key.startswith("cb_infobrief_"):
+                    if st.session_state[key] == 1:
+                        # Checked
+                        current_id = re.findall(r"cb_infobrief_(\d\d\d)", key)[0]
+                        current_id = int(current_id)
+                        current_data = selected_data[selected_data[KEY_COL] == current_id].iloc[0,:]
+                        print(current_data)
+                        name = current_data[FIRST_NAME_COL]
+                        if current_data[FORM_FOR_CHILD_COL]:
+                            email_recipients = [
+                                current_data[EMAIL_COL],
+                                current_data[PARENT_EMAIL_COL]
+                            ]
+                        else:
+                            email_recipients = [
+                                current_data[EMAIL_COL]
+                            ]
+
+                        officeHelper.send_infobrief(html_content, subject, name, email_recipients, "")
+                        st.write(f"Infobrief an {current_name} ({current_id}) versendet")
+
+
 def header_info():
     count_waiting_for_confirm = len(data_total[data_total[CONFIRMED_COL]==0])
     count_waiting_for_invoice = len(data_total[data_total[DATE_INVOICE_COL].isna() & (data_total[CONFIRMED_COL]==1)])
@@ -745,7 +793,8 @@ if st.session_state["privileges"] == 1:
         "Buchhaltung": buchhaltung_view,
         "Finanzübersicht": finanzen_view,
         "Medizinische Daten": medical_view,
-        "Küche Daten":kitchen_view
+        "Küche Daten":kitchen_view,
+        "Infobrief": infobrief_view,
     }
 elif st.session_state["privileges"] == 2:
     data_total = pd.read_sql(get_all_query, connection)

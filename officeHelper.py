@@ -1,5 +1,6 @@
 import base64
 import requests
+import re
 import streamlit as st
 
 OFFICE_TOKEN_VALUE = st.secrets["OFFICE"]["CLIENT_SECRET"]
@@ -202,6 +203,19 @@ def send_email(body:str, subject:str, email_recipient: str, attachments:list, bb
         return False
 
     return True
+
+def send_infobrief(body:str, subject:str, name:str, email_recipients: list[str], bbc_email_recipient = ""):
+    body = re.sub(r"{{name}}", name, body)
+    body = re.sub(r"{{subject}}", subject, body)
+
+    for recipient in email_recipients:
+        send_email(
+            body=body,
+            subject=subject,
+            email_recipient=recipient,
+            attachments=[],
+            bbc_email_recipient=""
+        )
 
 def reauthorize_button():
     st.write("Du bist derzeit nicht autorisiert. Versuche dich erneut zu autorisieren.")
