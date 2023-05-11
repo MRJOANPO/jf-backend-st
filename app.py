@@ -10,6 +10,7 @@ import invoice_creator
 import officeHelper
 import default_text
 
+TABLE_NAME = "Anmeldung_test"
 MONEY_EARLY = 348
 MONEY_LATE = 398
 MONEY_BUS = 0
@@ -51,6 +52,7 @@ ZECKENIMPFUNG_COL = "zecken_impfung"
 TETANUS_IMPFUNG_COL = "tetanus_impfung"
 BUS_COL = "bus"
 BUS_MUENSTER_COL = "bus_muenster"
+BUS_HAMBURG_COL = "bus_hamburg"
 SIBLING_COL = "sibling"
 MITARBEITER_COL = "mitarbeiter"
 COMMENT_COL = "comment"
@@ -186,7 +188,7 @@ def display_gender(value:str) -> str:
     return "männlich"
 
 def delete_person(current_id:int):
-    delete_query = f"UPDATE Anmeldung SET {DELETED_COL}=1 WHERE id={current_id}"
+    delete_query = f"UPDATE {TABLE_NAME} SET {DELETED_COL}=1 WHERE id={current_id}"
     delete_cursor = connection.cursor()
     delete_cursor.execute(delete_query)
     connection.commit()
@@ -403,7 +405,7 @@ def confirm_signup(primary=0):
         kostenlos = st.checkbox(f"Kostenlos", current_data[SPONSORED_COL].values[0])
         geschwister = st.checkbox(f"Geschwisterkind", current_data[SIBLING_COL].values[0])
         if st.form_submit_button("Absenden"):
-            confirm_query = f"UPDATE Anmeldung SET {CONFIRMED_COL}={confirmed}, {MITARBEITER_COL}={mitarbeiter}, {EXTERNAL_STAFF_COL}={externe_mitarbeiter}, {KITCHEN_TEAM_COL}={kuechenteam}, {SPONSORED_COL}={kostenlos}, {SIBLING_COL}={geschwister} WHERE `id`={current_id}"
+            confirm_query = f"UPDATE {TABLE_NAME} SET {CONFIRMED_COL}={confirmed}, {MITARBEITER_COL}={mitarbeiter}, {EXTERNAL_STAFF_COL}={externe_mitarbeiter}, {KITCHEN_TEAM_COL}={kuechenteam}, {SPONSORED_COL}={kostenlos}, {SIBLING_COL}={geschwister} WHERE `id`={current_id}"
             confirm_cursor = connection.cursor()
             confirm_cursor.execute(confirm_query)
             connection.commit()
@@ -468,6 +470,7 @@ def single_edit(primary=0):
         leave_confirm = st.checkbox("Darf das Gelände verlassen", current_data[LEAVE_CONFIRM_COL].values[0])
         bus = st.checkbox("Mit Busfahrt", current_data[BUS_COL].values[0])
         bus_muenster = st.checkbox("Mit Buszustieg in Münster", current_data[BUS_MUENSTER_COL].values[0])
+        bus_hamburg = st.checkbox("Mit Buszustieg in Hamburg", current_data[BUS_HAMBURG_COL].values[0])
 
         balance = st.number_input("Geldeingang", value=current_data[BALANCE_COL].values[0])
         support = st.number_input("Unterstützung", value=current_data[EXTRA_DISCOUNT_COL].values[0])
@@ -479,7 +482,7 @@ def single_edit(primary=0):
         confirmed = st.checkbox("Teilnahme bestätigt", current_data[CONFIRMED_COL].values[0])
 
         if st.form_submit_button("Daten speichern"):
-            update_query = f"UPDATE Anmeldung SET {FIRST_NAME_COL}='{first_name}', {LAST_NAME_COL}='{last_name}',{FORM_FOR_CHILD_COL}={form_for_child},{PARENT_FIRST_NAME_COL}='{parent_first_name}',{PARENT_LAST_NAME_COL}='{parent_last_name}',{PHONE_COL}='{phone}',{EMAIL_COL}='{email}',{PARENT_EMAIL_COL}='{parent_email}',{PARENT_PHONE_COL}='{parent_phone}',{ADDRESS_COL}='{address}',{ZIP_COL}={plz},{CITY_COL}='{city}',{COUNTRY_COL}='{country}',{GENDER_COL}='{gender}',{T_SHIRT_COL}='{t_shirt_size.lower()}',{BIRTHDAY_COL}='{birthday}',{DOCTOR_NAME_COL}='{doctor_name}',{DOCTOR_PHONE_COL}='{doctor_phone}',{EMERGENCY_CONTACT_1_NAME_COL}='{emergency_contact_1_name}',{EMERGENCY_CONTACT_1_PHONE_COL}='{emergency_contact_1_phone}',{EMERGENCY_CONTACT_2_NAME_COL}='{emergency_contact_2_name}',{EMERGENCY_CONTACT_2_PHONE_COL}='{emergency_contact_2_phone}',{ALLERGIES_COL}='{allergies}',{MENTAL_ISSUES_COL}='{mental_issues}',{CHRONICAL_DISEASES_COL}='{chronical_diseases}',{MEDICATION_COL}='{medication}',{ZIMMERWUNSCH_COL}='{zimmerwunsch}',{COMMENT_COL}='{comment}',{TETANUS_IMPFUNG_COL}={tetanus},{ZECKENIMPFUNG_COL}={zecken},{BUS_COL}={bus},{BUS_MUENSTER_COL}={bus_muenster},{SPONSORED_COL}={sponsored},{BALANCE_COL}={balance},{STAFF_COL}={staff},{CONFIRMED_COL}={confirmed},{EXTRA_DISCOUNT_COL}={support},{SWIM_CONFIRM_COL}={swim_confirm},{KITCHEN_TEAM_COL}={kitchen},{EXTERNAL_STAFF_COL}={external_staff},{LEAVE_CONFIRM_COL}={leave_confirm},{SIBLING_COL}={sibling_coming} WHERE {KEY_COL} = {current_id}"
+            update_query = f"UPDATE {TABLE_NAME} SET {FIRST_NAME_COL}='{first_name}', {LAST_NAME_COL}='{last_name}',{FORM_FOR_CHILD_COL}={form_for_child},{PARENT_FIRST_NAME_COL}='{parent_first_name}',{PARENT_LAST_NAME_COL}='{parent_last_name}',{PHONE_COL}='{phone}',{EMAIL_COL}='{email}',{PARENT_EMAIL_COL}='{parent_email}',{PARENT_PHONE_COL}='{parent_phone}',{ADDRESS_COL}='{address}',{ZIP_COL}={plz},{CITY_COL}='{city}',{COUNTRY_COL}='{country}',{GENDER_COL}='{gender}',{T_SHIRT_COL}='{t_shirt_size.lower()}',{BIRTHDAY_COL}='{birthday}',{DOCTOR_NAME_COL}='{doctor_name}',{DOCTOR_PHONE_COL}='{doctor_phone}',{EMERGENCY_CONTACT_1_NAME_COL}='{emergency_contact_1_name}',{EMERGENCY_CONTACT_1_PHONE_COL}='{emergency_contact_1_phone}',{EMERGENCY_CONTACT_2_NAME_COL}='{emergency_contact_2_name}',{EMERGENCY_CONTACT_2_PHONE_COL}='{emergency_contact_2_phone}',{ALLERGIES_COL}='{allergies}',{MENTAL_ISSUES_COL}='{mental_issues}',{CHRONICAL_DISEASES_COL}='{chronical_diseases}',{MEDICATION_COL}='{medication}',{ZIMMERWUNSCH_COL}='{zimmerwunsch}',{COMMENT_COL}='{comment}',{TETANUS_IMPFUNG_COL}={tetanus},{ZECKENIMPFUNG_COL}={zecken},{BUS_COL}={bus},{BUS_MUENSTER_COL}={bus_muenster},{SPONSORED_COL}={sponsored},{BALANCE_COL}={balance},{STAFF_COL}={staff},{CONFIRMED_COL}={confirmed},{EXTRA_DISCOUNT_COL}={support},{SWIM_CONFIRM_COL}={swim_confirm},{KITCHEN_TEAM_COL}={kitchen},{EXTERNAL_STAFF_COL}={external_staff},{LEAVE_CONFIRM_COL}={leave_confirm},{SIBLING_COL}={sibling_coming},{BUS_HAMBURG_COL}={bus_hamburg} WHERE {KEY_COL} = {current_id}"
             update_cursor = connection.cursor()
             update_cursor.execute(update_query)
             connection.commit()
@@ -549,7 +552,7 @@ def send_invoice(current_id, current_data, current_name):
         if officeHelper.send_email_rechnung(email_main, invoice_name, pdf_attachment, is_parent, current_id):
             st.write("Rechnung wurde per E-Mail versandt")
             update_invoice_cursor = connection.cursor()
-            update_invoice_query = f"UPDATE Anmeldung SET {DATE_INVOICE_COL}='{datetime.datetime.now()}' WHERE {KEY_COL} = {current_id}"
+            update_invoice_query = f"UPDATE {TABLE_NAME} SET {DATE_INVOICE_COL}='{datetime.datetime.now()}' WHERE {KEY_COL} = {current_id}"
             update_invoice_cursor.execute(update_invoice_query)
             connection.commit()
             st.write(f"{update_invoice_cursor.rowcount} Datensatz aktualisiert")
@@ -587,7 +590,7 @@ def buchhaltung_view():
                     current_balance = current_data[BALANCE_COL]
                     # new_balance = current_balance.values[0] + betrag # uncomment to activate adding
                     new_balance = betrag
-                    buchhaltung_query = f"UPDATE Anmeldung SET {BALANCE_COL}={new_balance} WHERE id={current_id}"
+                    buchhaltung_query = f"UPDATE {TABLE_NAME} SET {BALANCE_COL}={new_balance} WHERE id={current_id}"
                     buchhaltung_cursor.execute(buchhaltung_query)
                     connection.commit()
                     st.write(f"{buchhaltung_cursor.rowcount} Datensatz aktualisiert für {current_data[FIRST_NAME_COL].values[0]} {current_data[LAST_NAME_COL].values[0]} mit einem Betrag von {babel.numbers.format_currency(betrag, 'EUR', locale='de_DE')}")
@@ -782,7 +785,7 @@ connection = mysql.connector.connect(
     password=st.secrets["DATABASE_PASSWORD"],
     database=st.secrets["DATABASE_NAME"]
 )
-get_all_query = "SELECT * FROM `Anmeldung` WHERE deleted = 0"
+get_all_query = f"SELECT * FROM `{TABLE_NAME}` WHERE deleted = 0"
 if  "privileges" not in st.session_state:
     st.session_state["privileges"] = 0
 
