@@ -572,6 +572,12 @@ def buchhaltung_view():
             for i in range(len(relevant_data)):
                 verwendungszweck = relevant_data.iloc[i,8]
                 betrag = relevant_data.iloc[i,11]
+
+                if isinstance(betrag, str):
+                    betrag = betrag.replace(".", "")
+                    betrag = betrag.replace(",", ".")
+                    betrag = float(betrag)
+
                 current_id = int(re.findall(r"JF2023-(\d\d\d)", verwendungszweck, flags=re.IGNORECASE)[0])
                 current_data = data_total[data_total[KEY_COL]==current_id]
                 if len(current_data) == 0:
@@ -582,7 +588,6 @@ def buchhaltung_view():
                     # new_balance = current_balance.values[0] + betrag # uncomment to activate adding
                     new_balance = betrag
                     buchhaltung_query = f"UPDATE Anmeldung SET {BALANCE_COL}={new_balance} WHERE id={current_id}"
-
                     buchhaltung_cursor.execute(buchhaltung_query)
                     connection.commit()
                     st.write(f"{buchhaltung_cursor.rowcount} Datensatz aktualisiert für {current_data[FIRST_NAME_COL].values[0]} {current_data[LAST_NAME_COL].values[0]} mit einem Betrag von {babel.numbers.format_currency(betrag, 'EUR', locale='de_DE')}")
