@@ -45,11 +45,7 @@ class Infobrief():
         <div style=\"padding: 16px 32px;\">
             <p>Hey {{name}},</p>
             <p>
-                richtig cool, dass du auf der Jugendfreizeit dabei bist!
-                Dieses Jahr dürfen wir acht großartige Tage zusammen in Dänemark verbringen.
-                Die Woche wird gefüllt sein mit Gottesdiensten, Gemeinschaft, Baden im Meer, Kleingruppen und noch vielem mehr!
-                Damit wir alle gut vorbereitet sind, findest du hier einige wichtige Infos für die Freizeit.
-                Bitte nimm dir ein paar Minuten Zeit dir die Punkte gründlich durchzulesen und die ToDo's abzuhaken!
+                richtig cool, dass Du Teil der Jugendfreizeit sein wirst! Dieses Jahr dürfen wir gemeinsam acht wunderbare Tage in Dänemark verbringen. Auf Dich warten großartige Menschen, begeisterndes Programm, leckeres Essen und natürlich Baden im Meer. Unser Wunsch ist es, dass Du dabei ganz viel Freude hast, tiefe Freundschaften baust und vor allem erneuernde Begegnungen mit Jesus hast. Damit Du Dich gut auf die Freizeit vorbereiten kannst, haben wir hier einige wichtige Infos für Dich. Bitte nimm Dir ein paar Minuten Zeit, alles gründlich durchzulesen.
             </p>
         </div>
         <div style=\"padding: 16px 32px; background-color: #eb5a41; color: #FFF;\">
@@ -57,33 +53,34 @@ class Infobrief():
                 Busfahrt
             </h2>
             <p>
-                Wir treffen uns am 21.07.2023 um 21:00 Uhr, auf dem <a href=\"https://goo.gl/maps/DMsRWn4DnLKVFMGj9\" style=\"text-decoration: none; color: #FFF;\">Parkplatz der Calvary Chapel Siegen</a>.
+                Wir treffen uns am 21.07.2023 um 21:00 Uhr, auf dem
                 Es ist wichtig, dass du pünktlich da bist!
                 Wir können leider nicht planen, wie häufig wir an welchen Raststätten halten werden.
                 Bitte pack Dir deshalb ausreichen Proviant ein.
                 Das Mittagessen am Samstag ist die erste Mahlzeit in Dänemark.
-            </p>
+                Wir treffen uns am Freitag, den 21.07.2023, um 21:00 Uhr auf dem<a href=\"https://goo.gl/maps/DMsRWn4DnLKVFMGj9\" style=\"text-decoration: none; color: #FFF;\">Parkplatz der Calvary Chapel Siegen</a>. Es ist wichtig, dass Du pünktlich da bist! Das Mittagessen am Samstag ist die erste Mahlzeit in Dänemark. Bitte pack Dir deshalb ausreichend Proviant für die Fahrt ein.
+</p>
+<p> <strong>Treffpunkt Zustiege<br>Münster: 00:00 Uhr Raststätte Münsterland Ost (A1)<br>Hamburg: 04:00 Uhr Raststätte Holmoor /Quickborn (A7)</p>
             <h2 style=\"margin-top: 32px;\">
                 Gepäck
             </h2>
             <p>
-                Jeder Teilnehmer darf 1 großes Gepäckstück und 1 Handgepäckstück mitbringen.
-                Bitte achte darauf, dass Dein Gepäck von Dir selbst getragen werden kann.
+                Du darfst 1 großes Gepäckstück und 1 Handgepäckstück mitbringen.
+Bitte achte darauf, dass Dein Gepäck von Dir selbst getragen werden kann.
             </p>
 
             <h2 style=\"margin-top: 32px;\">
                 Bettzeug
             </h2>
             <p>
-                Vor Ort sind die Betten mit Matratzen ausgestattet. Dementsprechend müssen ein Spannbettlaken und entweder ein Schlafsack oder eine Decke & Kissen mit den Bezügen mitgebracht werden.
+                Vor Ort sind die Betten mit Matratzen ausgestattet. Bring bitte ein Spannbettlaken, Kissen und Schlafsack oder Decke mit den Bezügen mit.
             </p>
 
             <h2 style=\"margin-top: 32px;\">
                 Sonstiges Gepäck
             </h2>
             <p>
-                Handtücher, Körperhygieneartikel, Sonnencreme, Badekleidung, Sportkleidung,
-                Rucksack, Verpflegung für die Busfahrt, Trinkflasche, Stifte und Bibel.
+               Handtücher, Körperhygieneartikel, Sonnencreme, Badekleidung, Sportkleidung, Rucksack, Verpflegung für die Busfahrt, Trinkflasche, Stifte und Bibel
             </p>
         </div>
         <div style=\"padding: 16px 32px; text-align: center;\">
@@ -94,7 +91,7 @@ class Infobrief():
         <div style=\"background-color: #366db4; padding: 16px 32px; color: #FFF;\">
             <h2>Dokumente</h2>
             <p style=\"font-style: italic;\">
-                Es ist eine Voraussetzung für die Teilnahme an der Freizeit, dass du folgende Dokumente mitbringst
+                Es ist eine Voraussetzung für Deine Teilnahme an der Freizeit, dass Du folgende Dokumente mitbringst:
             </p>
             <ul>
                 <li>Personalausweis/Reisepass</li>
@@ -102,19 +99,15 @@ class Infobrief():
                 <li>Impfheft (Das gelbe Heft, nicht die COVID-19 Nachweise.)</li>
             </ul>
             <p>
-                Prüfe bitte jetzt die Gültigkeit deiner Dokumente.
-                Wenn du keine deutsche Staatsbürgerschaft hast, prüfe bitte, ob du aus Deutschland ausreisen und in Dänemark einreisen darfst.
-                Bitte packe die Dokumente ins Handgepäck, da wir diese vor Beginn der Busfahrt einsammeln werden. Diese bekommst du natürlich am Ende der Freizeit zurück!
-                Ohne diese Dokumente kannst du leider nicht mitfahren.
+                Prüfe bitte jetzt die Gültigkeit Deiner Dokumente. Wenn Du keine deutsche Staatsbürgerschaft hast, prüfe, ob Du aus Deutschland ausreisen und in Dänemark einreisen darfst. Bitte packe die Dokumente ins Handgepäck, da wir diese vor Beginn der Busfahrt kontrollieren werden.
+Die Krankenversicherungskarte und den Impfausweis werden wir einsammeln.
+Diese bekommst Du natürlich am Ende der Freizeit zurück!
             </p>
 
             <h2 style=\"margin-top: 32px;\">Versicherung und Regeln</h2>
             <p>
-                Wir empfehlen dringend den Abschluss einer Reiserücktrittversicherung.
-                Prüfe bitte, ob deine Krankenversicherung auch in Dänemark ausreichend ist, oder ob du eine Auslandskrankenversicherung benötigst.
-
-                Auf unserer Website findest du die AGB's für die Freizeit. Dort sind einige Grundlagen und Regeln für die Freizeit aufgelistet. Bitte lese sie dir vor der Freizeit durch.
-                So können wir Missverständnisse gut vermeiden!
+                Wir empfehlen Dir den Abschluss einer Reiserücktrittversicherung.
+Prüfe bitte, ob Deine Krankenversicherung auch in Dänemark ausreichend ist, oder ob Du eine Auslandskrankenversicherung benötigst. Auf unserer Website findest Du die AGB's für die Freizeit. Dort sind einige Grundlagen und Regeln für die Freizeit aufgelistet. Bitte lese sie Dir vor der Freizeit durch. So können wir Missverständnisse gut vermeiden!
             </p>
 
             <div style=\"margin: 32px 0rem;\">
@@ -135,9 +128,7 @@ class Infobrief():
         <div style=\"padding: 16px 32px; background-color: #52b99e;\">
             <h2>Verpflegung & Taschengeld</h2>
             <p>
-                Jeden Tag wird es drei leckere und nahrhafte Mahlzeiten geben, welche im Freizeitpreis enthalten sind.
-                Wenn du dir während den Busfahrten oder vor Ort im Dorf etwas kaufen möchtest, musst du es selbst bezahlen. Es gibt vor Ort keine Möglichkeit Wertsachen zu verschließen.
-                Infos zur Verwendung von EC- & Kreditkarten in Dänemark findest du unter folgenden Links:
+                Jeden Tag wird es drei leckere und nahrhafte Mahlzeiten geben, welche im Freizeitpreis enthalten sind. Wenn Du Dir während den Busfahrten oder vor Ort im Dorf etwas kaufen möchtest, musst Du es selbst bezahlen. Es gibt vor Ort keine Möglichkeit, Wertsachen zu verschließen. Infos zur Verwendung von EC- & Kreditkarten in Dänemark findest Du unter folgenden Links:
             </p>
             <div style=\"margin: 32px 0;\">
                 <a
@@ -154,7 +145,8 @@ class Infobrief():
                 </a>
             </div>
             <h2 style=\"margin-top: 64px;\">Allergien & Essensverzicht</h2>
-            <p>Wenn du Allergien hast oder z.B. Vegetarier bist und du diese noch nicht bei der Anmeldung angegebenen hast, teile es uns bitte als bald als möglich per E-Mail mit.</p>
+            <p>Wenn Du Allergien hast oder z.B. Vegetarier bist und Du diese noch nicht bei der Anmeldung angegeben hast, teile es uns bitte zeitnah per E-Mail mit.
+Wenn Du eine akut Medizin/ Antiallergikum hast, nimm dies bitte unbedingt mit und prüfe vorher das Verfallsdatum.</p>
             <div style=\"margin: 32px 0rem;\">
                 <a
                     href=\"mailto:jugendfreizeit@rocksolidsiegen.de\"
@@ -178,7 +170,7 @@ class Infobrief():
         </div>
         <div style=\"padding: 16px 32px;\">
             <p>
-                Wir freuen uns riesig! <br>
+                Wir freuen uns auf Dich!<br>
                 Dein RockSolid Team.
             </p>
         </div>
