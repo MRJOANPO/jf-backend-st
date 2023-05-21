@@ -60,7 +60,7 @@ class Infobrief():
                 Das Mittagessen am Samstag ist die erste Mahlzeit in Dänemark.
                 Wir treffen uns am Freitag, den 21.07.2023, um 21:00 Uhr auf dem<a href=\"https://goo.gl/maps/DMsRWn4DnLKVFMGj9\" style=\"text-decoration: none; color: #FFF;\">Parkplatz der Calvary Chapel Siegen</a>. Es ist wichtig, dass Du pünktlich da bist! Das Mittagessen am Samstag ist die erste Mahlzeit in Dänemark. Bitte pack Dir deshalb ausreichend Proviant für die Fahrt ein.
 </p>
-<p> <strong>Treffpunkt Zustiege<br>Münster: 00:00 Uhr Raststätte Münsterland Ost (A1)<br>Hamburg: 04:00 Uhr Raststätte Holmoor /Quickborn (A7)</p>
+<p> <strong>Treffpunkt Zustiege</strong><br>Münster: 00:00 Uhr Raststätte Münsterland Ost (A1)<br>Hamburg: 04:00 Uhr Raststätte Holmoor /Quickborn (A7)</p>
             <h2 style=\"margin-top: 32px;\">
                 Gepäck
             </h2>
