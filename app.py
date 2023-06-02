@@ -685,6 +685,7 @@ def medical_view():
         "Vorname": confirmed_people[FIRST_NAME_COL],
         "Nachname": confirmed_people[LAST_NAME_COL],
         "Alter": confirmed_people[BIRTHDAY_COL].apply(calc_age),
+        "Telefonummer": confirmed_people[PHONE_COL],
         "Geschlecht": confirmed_people[GENDER_COL],
         "Arzt": confirmed_people[DOCTOR_NAME_COL] + " (" + confirmed_people[DOCTOR_PHONE_COL] + ")",
         "Notfallkontakt 1": confirmed_people.apply(get_first_emergency_contact, axis=1),
